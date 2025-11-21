@@ -18,11 +18,16 @@
     max-width: var(--container-max-width);
 }
 
+.searchbar-search {
+    flex: 1 1 auto;
+    min-width: 280px;
+}
+
 .search-input-wrap {
     display: flex;
     align-items: center;
     gap: 8px;
-    flex: 1 1 60%;
+    width: 100%;
     padding-right: 12px;
     border-right: 1px solid var(--color-border);
 }
@@ -43,10 +48,16 @@
     cursor: pointer;
 }
 
+.searchbar-filter {
+    /* increased fixed width for filters to accommodate longer labels */
+    flex: 0 0 540px;
+}
+
 .search-filters {
     display: flex;
     gap: 12px;
     align-items: center;
+    justify-content: flex-end;
 }
 
 .filter {
@@ -57,6 +68,88 @@
     cursor: pointer;
     color: var(--color-text-secondary);
 }
+
+.filter-wrap {
+    position: relative;
+}
+
+/* Fix per-filter width to prevent layout shifts when labels change */
+.filter-wrap.filter-fixed {
+    /* larger per-filter width */
+    min-width: 160px;
+    max-width: 220px;
+}
+.filter-wrap.filter-fixed .filter {
+    display: block;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
+    padding-right: 8px; /* give some breathing room for ellipsis */
+}
+
+.filter.open {
+    background-color: var(--color-hover-light);
+    color: var(--color-primary);
+}
+
+.filter-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    background: var(--color-white);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    box-shadow: var(--shadow-md);
+    min-width: 160px;
+    z-index: var(--z-dropdown);
+    padding: 6px 0;
+    list-style: none; /* remove bullets */
+    margin: 0;
+    max-height: 220px; /* limit height */
+    overflow-y: auto; /* enable vertical scroll */
+    -webkit-overflow-scrolling: touch;
+}
+
+.filter-item {
+    padding: 8px 12px;
+    cursor: pointer;
+    color: var(--color-text-primary);
+    display: block; /* make full-width clickable */
+}
+
+.filter-item:hover {
+    background: var(--color-hover-light);
+    color: var(--color-primary);
+}
+
+/* Distance custom input inside dropdown */
+.distance-custom {
+    padding: 8px 12px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+.distance-custom input {
+    width: 80px;
+    padding: 6px 8px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+}
+.distance-custom button {
+    padding: 6px 10px;
+    border: none;
+    background: var(--color-primary);
+    color: var(--color-white);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Optional: nicer thin webkit scrollbar */
+.filter-dropdown::-webkit-scrollbar { width: 8px; }
+.filter-dropdown::-webkit-scrollbar-track { background: transparent; }
+.filter-dropdown::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.08); border-radius: 6px; }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
@@ -78,4 +171,7 @@
         width: 100%;
         justify-content: space-between;
     }
+
+    .searchbar-filter { flex: 1 1 auto; width: 100%; }
+    .searchbar-search { width: 100%; }
 }
