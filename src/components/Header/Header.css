@@ -1,9 +1,84 @@
-header {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
+/* Header and SearchBar styles */
+@import '../../styles/variables.css';
+
+.site-header {
+	position: relative;
+	z-index: var(--z-sticky);
 }
+
+.topbar {
+	background: linear-gradient(180deg, var(--color-primary-dark), var(--color-primary));
+	color: var(--color-white);
+	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+
+.header-inner {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: var(--header-height);
+    padding-bottom: 20px;
+    padding-right: 50px;
+    padding-left: 50px;
+}
+
+.logo .logo-img {
+	height: 56px;
+}
+
+.header-right{
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.main-nav {
+	display: flex;
+	gap: 20px;
+	align-items: center;
+}
+
+.nav-link {
+	color: var(--color-white);
+	text-decoration: none;
+	font-weight: var(--font-weight-semibold);
+	padding: 6px 8px;
+}
+
+.nav-link:hover {
+    color: var(--color-hover-dark);
+}
+
+.nav-active {
+    border-bottom: 2px solid var(--color-white);
+    font-size: larger;
+    font-weight: var(--font-weight-medium);
+}
+
+.profile .profile-btn {
+	background: var(--color-white);
+	color: var(--color-primary-dark);
+	border: none;
+	padding: 10px 16px;
+	border-radius: var(--radius-full);
+	cursor: pointer;
+	box-shadow: var(--shadow-sm);
+	font-weight: var(--font-weight-semibold);
+}
+
+.profile .profile-btn:hover {
+    background: var(--color-hover-dark);
+    color: var(--color-white);
+}
+
+.arrow {
+    margin-left: 8px;
+    font-size: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+	.header-inner { height: 110px; padding: 8px 0; }
+}
+
+
