@@ -72,7 +72,7 @@ export default function LoginForm() {
 
       <p className="signup-note">
         Bạn chưa có tài khoản?{" "}
-        <a className="link-accent" href="#signup">
+        <a className="link-accent" href="/register">
           Đăng ký miễn phí!
         </a>
       </p>

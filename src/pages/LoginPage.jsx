@@ -1,5 +1,5 @@
 import React from "react";
-import "./loginPage.css";
+import "./auth/login.css";
 import LoginForm from "../components/Auth/LoginForm";
 
 const loginImage = "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg";

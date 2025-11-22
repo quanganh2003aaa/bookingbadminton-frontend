@@ -1,4 +1,4 @@
-@import "../styles/variables.css";
+@import "../../styles/variables.css";
 
 .login-page {
   min-height: 100vh;
@@ -44,12 +44,12 @@
 .login-right {
   background: var(--color-black);
   position: relative;
-  height: 57%;
+  height: 100%;
 }
 
 .login-right img {
   width: 100%;
-  height: 100%;
+  height: 57%;
   object-fit: cover;
   display: block;
 }
@@ -77,6 +77,7 @@
   border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 12px 14px;
+  min-height: 52px;
   background: var(--color-white);
   transition: border var(--transition-fast), box-shadow var(--transition-fast);
 }
@@ -100,14 +101,15 @@
 }
 
 .input-wrap.password {
-  padding-right: 6px;
+  padding-right: 8px;
 }
 
 .eye-btn {
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 8px;
+  padding: 0 10px;
+  font-size: 18px;
   color: var(--color-text-secondary);
   display: flex;
   align-items: center;
@@ -185,6 +187,7 @@
 @media (max-width: 960px) {
   .login-card {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
   .login-right {
