@@ -7,6 +7,7 @@ import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
+import OwnerLoginPage from "../pages/OwnerLoginPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -33,6 +34,11 @@ export const router = createBrowserRouter([
     path: "/forgot-password",
     element: <AuthLayout />,
     children: [{ index: true, element: <ForgotPasswordPage /> }],
+  },
+  {
+    path: "/owner-login",
+    element: <AuthLayout />,
+    children: [{ index: true, element: <OwnerLoginPage /> }],
   },
 
   {

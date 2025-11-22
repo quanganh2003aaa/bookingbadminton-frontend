@@ -1,0 +1,212 @@
+@import "../../styles/variables.css";
+
+.owner-page {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+}
+
+.owner-card {
+  background: var(--color-white);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  max-width: 1100px;
+  width: 100%;
+  height: min(700px, 90vh);
+}
+
+.owner-left {
+  padding: 90px 46px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.owner-heading h1 {
+  text-transform: uppercase;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.5px;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.owner-heading p {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  text-align: center;
+}
+
+.owner-divider {
+  height: 2px;
+  width: 100%;
+  background: var(--color-primary);
+  margin: 6px 0 8px;
+}
+
+.owner-right {
+  background: var(--color-black);
+  position: relative;
+  height: 100%;
+}
+
+.owner-right img {
+  width: 100%;
+  height: 57%;
+  object-fit: cover;
+  display: block;
+}
+
+.owner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field label {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.input-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 52px;
+  background: var(--color-white);
+  transition: border var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.input-wrap:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus);
+}
+
+.input-wrap input {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+}
+
+.input-wrap input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.input-wrap.password {
+  padding-right: 8px;
+}
+
+.eye-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 10px;
+  font-size: 18px;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.field-actions {
+  text-align: right;
+}
+
+.link-muted {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  text-decoration: none;
+}
+
+.link-muted:hover {
+  text-decoration: underline;
+}
+
+.btn {
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    background var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.btn.primary {
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 8px 16px rgba(25, 112, 80, 0.25);
+}
+
+.btn.primary:hover {
+  transform: translateY(-1px);
+  background: var(--color-primary-dark);
+}
+
+.signup-note {
+  text-align: center;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: 4px;
+}
+
+.link-accent {
+  color: var(--color-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.link-accent:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 960px) {
+  .owner-card {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+
+  .owner-right {
+    display: none;
+  }
+
+  .owner-left {
+    padding: 32px 28px;
+  }
+}
+
+@media (max-width: 520px) {
+  .owner-page {
+    padding: 16px;
+  }
+
+  .owner-left {
+    padding: 26px 22px;
+  }
+
+  .btn {
+    height: 46px;
+  }
+}

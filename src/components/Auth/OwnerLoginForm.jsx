@@ -1,8 +1,7 @@
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 
-export default function LoginForm() {
+export default function OwnerLoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [values, setValues] = useState({ email: "", password: "" });
 
@@ -13,11 +12,11 @@ export default function LoginForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Login submit", values);
+    console.log("Owner login submit", values);
   };
 
   return (
-    <form className="login-form" onSubmit={handleSubmit}>
+    <form className="owner-form" onSubmit={handleSubmit}>
       <div className="field">
         <label htmlFor="email">Tài khoản</label>
         <div className="input-wrap">
@@ -65,22 +64,10 @@ export default function LoginForm() {
         Đăng nhập
       </button>
 
-      <button type="button" className="btn google">
-        <FcGoogle aria-hidden="true" size={22} />
-        <span>Tiếp tục với Google</span>
-      </button>
-
       <p className="signup-note">
-        Bạn chưa có tài khoản?{" "}
+        Bạn muốn quản lý sân dễ dàng?{" "}
         <a className="link-accent" href="/register">
-          Đăng ký miễn phí!
-        </a>
-      </p>
-
-      <p className="signup-note">
-        Nếu bạn là chủ sân,{" "}
-        <a className="link-accent" href="/owner-login">
-          đến trang đăng nhập của chủ sân
+          Đăng ký!
         </a>
       </p>
     </form>
