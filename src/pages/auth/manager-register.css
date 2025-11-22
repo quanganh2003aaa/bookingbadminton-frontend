@@ -1,72 +1,113 @@
 @import "../../styles/variables.css";
 
-.owner-page {
+.manager-register-page {
   min-height: 100vh;
-  background: var(--color-gray-50);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px 16px;
-}
-
-.owner-card {
-  background: var(--color-white);
-  border-radius: 14px;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  overflow: hidden;
-  max-width: 1100px;
-  width: 100%;
-  height: min(700px, 90vh);
-}
-
-.owner-left {
-  padding: 90px 46px 36px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-gray-50);
+  position: relative;
+  padding: 32px 16px 40px;
+  overflow: hidden;
 }
 
-.owner-heading h1 {
+.manager-register-hero {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.manager-register-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.9) brightness(0.9);
+  opacity: 0.25;
+}
+
+.manager-register-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1040px;
+  background: var(--color-white);
+  border-radius: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  padding: 32px 28px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.manager-heading {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.manager-heading h1 {
   text-transform: uppercase;
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.5px;
-  margin-bottom: 6px;
-  text-align: center;
 }
 
-.owner-heading p {
+.manager-heading p {
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
-  text-align: center;
 }
 
-.owner-divider {
-  height: 2px;
-  width: 100%;
-  background: var(--color-primary);
-  margin: 6px 0 8px;
-}
-
-.owner-right {
-  background: var(--color-black);
-  position: relative;
-  height: 100%;
-}
-
-.owner-right img {
-  width: 100%;
-  height: 57%;
-  object-fit: cover;
-  display: block;
-}
-
-.owner-form {
+.manager-form {
   display: flex;
   flex-direction: column;
   gap: 18px;
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 6px;
+}
+
+.step {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.step-number {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--color-white);
+  background: var(--color-primary);
+  box-shadow: 0 6px 12px rgba(25, 112, 80, 0.28);
+}
+
+.step-number.muted {
+  color: var(--color-text-primary);
+  background: var(--color-gray-200);
+  box-shadow: none;
+}
+
+.step-line {
+  width: 60px;
+  height: 4px;
+  background: var(--color-primary);
+  border-radius: 999px;
+}
+
+.step:not(.active) .step-line {
+  background: var(--color-gray-200);
 }
 
 .field {
@@ -125,22 +166,8 @@
   justify-content: center;
 }
 
-.field-actions {
-  text-align: right;
-}
-
-.link-muted {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  text-decoration: none;
-}
-
-.link-muted:hover {
-  text-decoration: underline;
-}
-
 .btn {
-  height: 48px;
+  height: 50px;
   border-radius: 10px;
   border: none;
   font-weight: 700;
@@ -154,13 +181,14 @@
   gap: 10px;
 }
 
-.btn.primary {
+.btn.primary.full {
+  width: 100%;
   background: var(--color-primary);
   color: var(--color-white);
   box-shadow: 0 8px 16px rgba(25, 112, 80, 0.25);
 }
 
-.btn.primary:hover {
+.btn.primary.full:hover {
   transform: translateY(-1px);
   background: var(--color-primary-dark);
 }
@@ -182,28 +210,27 @@
   text-decoration: underline;
 }
 
-@media (max-width: 960px) {
-  .owner-card {
-    grid-template-columns: 1fr;
-    height: auto;
+@media (max-width: 768px) {
+  .manager-register-card {
+    padding: 28px 22px 32px;
   }
 
-  .owner-right {
-    display: none;
+  .steps {
+    gap: 14px;
   }
 
-  .owner-left {
-    padding: 32px 28px;
+  .step-line {
+    width: 48px;
   }
 }
 
 @media (max-width: 520px) {
-  .owner-page {
-    padding: 16px;
+  .manager-register-page {
+    padding: 16px 12px 24px;
   }
 
-  .owner-left {
-    padding: 26px 22px;
+  .manager-register-card {
+    padding: 24px 18px 28px;
   }
 
   .btn {

@@ -66,7 +66,7 @@ export default function OwnerLoginForm() {
 
       <p className="signup-note">
         Bạn muốn quản lý sân dễ dàng?{" "}
-        <a className="link-accent" href="/register">
+        <a className="link-accent" href="/manager-register">
           Đăng ký!
         </a>
       </p>

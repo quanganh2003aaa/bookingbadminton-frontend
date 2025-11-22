@@ -8,6 +8,7 @@ import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import OwnerLoginPage from "../pages/OwnerLoginPage";
+import ManagerRegisterPage from "../pages/ManagerRegisterPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -39,6 +40,11 @@ export const router = createBrowserRouter([
     path: "/owner-login",
     element: <AuthLayout />,
     children: [{ index: true, element: <OwnerLoginPage /> }],
+  },
+  {
+    path: "/manager-register",
+    element: <AuthLayout />,
+    children: [{ index: true, element: <ManagerRegisterPage /> }],
   },
 
   {
