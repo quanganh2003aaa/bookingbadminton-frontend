@@ -1,13 +1,11 @@
 import React, { useState } from "react";
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 
-export default function RegisterForm() {
+export default function ForgotPasswordForm() {
   const [show, setShow] = useState({ password: false, confirm: false });
   const [values, setValues] = useState({
-    fullName: "",
-    phone: "",
     email: "",
+    passcode: "",
     password: "",
     confirmPassword: "",
   });
@@ -17,56 +15,52 @@ export default function RegisterForm() {
     setValues((prev) => ({ ...prev, [name]: value }));
   };
 
-  const toggle = (key) => {
-    setShow((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
+  const toggle = (key) => setShow((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Register submit", values);
+    console.log("Forgot password submit", values);
+  };
+
+  const handleSendCode = () => {
+    console.log("Send passcode to", values.email);
   };
 
   return (
-    <form className="register-form" onSubmit={handleSubmit}>
-      <div className="field">
-        <label htmlFor="fullName">Tên đầy đủ</label>
-        <div className="input-wrap">
-          <input
-            id="fullName"
-            name="fullName"
-            type="text"
-            placeholder="Nhập họ và tên"
-            value={values.fullName}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-
-      <div className="field">
-        <label htmlFor="phone">Số điện thoại</label>
-        <div className="input-wrap">
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="Nhập số điện thoại"
-            value={values.phone}
-            onChange={handleChange}
-            required
-          />
-        </div>
-      </div>
-
+    <form className="forgot-form" onSubmit={handleSubmit}>
       <div className="field">
         <label htmlFor="email">Gmail</label>
+        <div className="input-row">
+          <div className="input-wrap">
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="Nhập gmail của bạn"
+              value={values.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          <button
+            type="button"
+            className="btn send-btn"
+            onClick={handleSendCode}
+          >
+            Gửi
+          </button>
+        </div>
+      </div>
+
+      <div className="field">
+        <label htmlFor="passcode">Passcode</label>
         <div className="input-wrap">
           <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Nhập gmail của bạn"
-            value={values.email}
+            id="passcode"
+            name="passcode"
+            type="text"
+            placeholder="Nhập mã passcode gồm 6 số"
+            value={values.passcode}
             onChange={handleChange}
             required
           />
@@ -125,15 +119,9 @@ export default function RegisterForm() {
         Đăng ký
       </button>
 
-      <button type="button" className="btn google">
-        <FcGoogle aria-hidden="true" size={22} />
-        <span>Tiếp tục với Google</span>
-      </button>
-
-      <p className="signup-note">
-        Bạn đã có tài khoản?{" "}
+      <p className="back-login">
         <a className="link-accent" href="/login">
-          Đăng nhập!
+          Quay lại trang đăng nhập.
         </a>
       </p>
     </form>

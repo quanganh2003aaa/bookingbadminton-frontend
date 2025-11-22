@@ -6,6 +6,7 @@ import AuthLayout from "../layouts/AuthLayout";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -27,6 +28,11 @@ export const router = createBrowserRouter([
     path: "/register",
     element: <AuthLayout />,
     children: [{ index: true, element: <RegisterPage /> }],
+  },
+  {
+    path: "/forgot-password",
+    element: <AuthLayout />,
+    children: [{ index: true, element: <ForgotPasswordPage /> }],
   },
 
   {

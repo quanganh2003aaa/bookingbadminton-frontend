@@ -1,6 +1,6 @@
 @import "../../styles/variables.css";
 
-.register-page {
+.forgot-page {
   min-height: 100vh;
   background: var(--color-gray-50);
   display: flex;
@@ -9,7 +9,7 @@
   padding: 32px 16px;
 }
 
-.register-card {
+.forgot-card {
   background: var(--color-white);
   border-radius: 14px;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.1);
@@ -18,46 +18,46 @@
   overflow: hidden;
   max-width: 1100px;
   width: 100%;
-  height: min(760px, 105vh);
+  height: min(700px, 90vh);
 }
 
-.register-left {
-  padding: 25px 46px 36px;
+.forgot-left {
+  padding: 20px 46px 36px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  overflow-y: auto;
+  gap: 22px;
 }
 
-.register-heading h1 {
+.forgot-heading h1 {
   text-transform: uppercase;
   color: var(--color-primary);
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.5px;
+  margin-bottom: 6px;
 }
 
-.register-heading p {
+.forgot-heading p {
   color: var(--color-text-secondary);
   font-size: var(--font-size-base);
 }
 
-.register-right {
+.forgot-right {
   background: var(--color-black);
   position: relative;
   height: 100%;
 }
 
-.register-right img {
+.forgot-right img {
   width: 100%;
-  height: 66%;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.register-form {
+.forgot-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 18px;
 }
 
 .field {
@@ -69,6 +69,12 @@
 .field label {
   font-weight: 600;
   color: var(--color-text-primary);
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  gap: 10px;
 }
 
 .input-wrap {
@@ -142,26 +148,20 @@
   background: var(--color-primary-dark);
 }
 
-.btn.google {
-  background: var(--color-white);
-  color: var(--color-text-primary);
-  border: 1px solid var(--color-border);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.06);
-  justify-content: center;
-  font-weight: 600;
-  font-size: 16px;
-  font-family: var(--font-family-base);
+.btn.send-btn {
+  background: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 700;
 }
 
-.btn.google:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1);
+.btn.send-btn:hover {
+  background: var(--color-primary-dark);
 }
 
-.signup-note {
+.back-login {
   text-align: center;
-  color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
   margin-top: 4px;
 }
 
@@ -176,29 +176,34 @@
 }
 
 @media (max-width: 960px) {
-  .register-card {
+  .forgot-card {
     grid-template-columns: 1fr;
+    height: auto;
   }
 
-  .register-right {
+  .forgot-right {
     display: none;
   }
 
-  .register-left {
+  .forgot-left {
     padding: 32px 28px;
   }
 }
 
 @media (max-width: 520px) {
-  .register-page {
+  .forgot-page {
     padding: 16px;
   }
 
-  .register-left {
+  .forgot-left {
     padding: 26px 22px;
   }
 
   .btn {
     height: 46px;
+  }
+
+  .input-row {
+    grid-template-columns: 1fr;
   }
 }

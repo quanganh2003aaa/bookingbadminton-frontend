@@ -55,7 +55,7 @@ export default function LoginForm() {
           </button>
         </div>
         <div className="field-actions">
-          <a className="link-muted" href="#forgot">
+          <a className="link-muted" href="/forgot-password">
             Quên mật khẩu!
           </a>
         </div>
@@ -66,8 +66,8 @@ export default function LoginForm() {
       </button>
 
       <button type="button" className="btn google">
-        <FcGoogle aria-hidden="true" />
-        <span>Google</span>
+        <FcGoogle aria-hidden="true" size={22} />
+        <span>Tiếp tục với Google</span>
       </button>
 
       <p className="signup-note">
