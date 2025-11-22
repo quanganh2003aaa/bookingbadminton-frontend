@@ -67,6 +67,143 @@
   gap: 18px;
 }
 
+.manager-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 28px;
+}
+
+.manager-grid-left {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.manager-grid {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 28px;
+}
+
+.manager-grid-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.upload-card {
+  background: var(--color-gray-100);
+  border-radius: 10px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+}
+
+.upload-title {
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.upload-drop {
+  background: #d9d9d9;
+  border-radius: 10px;
+  height: 140px;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-secondary);
+  margin-bottom: 12px;
+  text-align: center;
+  gap: 6px;
+}
+
+.upload-icon {
+  font-size: 22px;
+}
+
+.upload-text {
+  font-size: 13px;
+}
+
+.upload-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.upload-item {
+  background: #d9d9d9;
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.upload-name {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.upload-status {
+  font-size: 12px;
+  color: var(--color-primary);
+}
+
+.upload-check {
+  color: var(--color-primary);
+  font-size: 18px;
+}
+
+.manager-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.back-link {
+  background: transparent;
+  border: none;
+  color: var(--color-primary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.form-error {
+  color: var(--color-error);
+  font-size: var(--font-size-sm);
+  margin-top: 4px;
+}
+
+.passcode-row {
+  display: grid;
+  grid-template-columns: 1fr 140px;
+  gap: 12px;
+  align-items: end;
+}
+
+.passcode-row .field.full {
+  margin: 0;
+}
+
+.btn.primary.resend {
+  height: 52px;
+  border-radius: 10px;
+}
+
+.passcode-note {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: 1.55;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
 .steps {
   display: flex;
   align-items: center;
@@ -88,9 +225,8 @@
   display: grid;
   place-items: center;
   font-weight: 700;
-  color: var(--color-white);
-  background: var(--color-primary);
-  box-shadow: 0 6px 12px rgba(25, 112, 80, 0.28);
+  color: var(--color-text-primary);
+  background: var(--color-gray-200);
 }
 
 .step-number.muted {
@@ -108,6 +244,26 @@
 
 .step:not(.active) .step-line {
   background: var(--color-gray-200);
+}
+
+.step.completed .step-number {
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 6px 12px rgba(25, 112, 80, 0.18);
+}
+
+.step.completed .step-line {
+  background: var(--color-primary);
+}
+
+.step.active .step-number {
+  background: var(--color-primary);
+  color: var(--color-white);
+  box-shadow: 0 6px 12px rgba(25, 112, 80, 0.28);
+}
+
+.step.active .step-line {
+  background: var(--color-primary);
 }
 
 .field {
@@ -221,6 +377,10 @@
 
   .step-line {
     width: 48px;
+  }
+
+  .manager-grid {
+    grid-template-columns: 1fr;
   }
 }
 
