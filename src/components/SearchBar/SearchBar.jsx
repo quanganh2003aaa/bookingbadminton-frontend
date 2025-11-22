@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import { FiSliders } from "react-icons/fi";
 import "./searchBar.css";
 import SearchInput from "./SearchInput";
@@ -13,14 +13,14 @@ export default function SearchBar() {
   const [searchText, setSearchText] = useState("");
   const rootRef = useRef(null);
 
-  function handleSelect(key, value) {
+  const handleSelect = (key, value) => {
     setSelected((s) => {
       if (key === "province") {
         return { ...s, province: value, area: null };
       }
       return { ...s, [key]: value };
     });
-  }
+  };
 
   const handleSearch = () => {
     console.log("Search triggered", {

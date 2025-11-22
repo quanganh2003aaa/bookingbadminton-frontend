@@ -19,14 +19,14 @@ export default function DistanceDropdown({ selected, onSelect }) {
     return () => document.removeEventListener("click", onDoc);
   }, []);
 
-  function applyCustom() {
+  const applyCustom = () => {
     const n = parseFloat(custom);
     if (!isNaN(n)) {
       onSelect(`${n} km`);
       setCustom("");
       setOpen(false);
     }
-  }
+  };
 
   return (
     <div
