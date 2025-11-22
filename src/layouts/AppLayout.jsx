@@ -6,7 +6,7 @@ export default function AppLayout() {
   return (
     <div className="app-container">
       <Header />
-      <main style={{ padding: "20px" }}>
+      <main style={{ padding: "10px" }}>
         <Outlet />
       </main>
       <Footer />

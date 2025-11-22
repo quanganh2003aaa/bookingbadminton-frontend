@@ -2,7 +2,8 @@
 @import '../../styles/variables.css';
 
 .site-header {
-	position: relative;
+	position: sticky;
+	top: 0;
 	z-index: var(--z-sticky);
 }
 
@@ -17,7 +18,7 @@
 	align-items: center;
 	justify-content: space-between;
 	height: var(--header-height);
-    padding-bottom: 20px;
+    padding-bottom: 12px;
     padding-right: 50px;
     padding-left: 50px;
 }

@@ -1,0 +1,59 @@
+/* Home Page Styles */
+.home-page {
+  padding: 0 0 32px;
+  min-height: calc(100vh - 200px);
+}
+
+.venues-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  padding: 20px 0;
+}
+
+@media (max-width: 1200px) {
+  .venues-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .venues-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px 0;
+  }
+
+  .home-page {
+    padding: 24px 0;
+  }
+}
+
+.no-venues {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+}
+
+.error-message {
+  padding: 20px;
+  background: #fee;
+  border: 1px solid #fcc;
+  border-radius: var(--radius-md);
+  color: #c00;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.loading-more {
+  text-align: center;
+  padding: 16px 0;
+  color: var(--color-text-secondary);
+}
+
+.loading-more.done {
+  color: var(--color-text-primary);
+}
