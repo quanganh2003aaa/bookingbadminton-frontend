@@ -5,8 +5,8 @@ import { getAllVenues } from "../services/venueService";
 import { mockVenues } from "../services/mockData";
 import "./homePage.css";
 
-const USE_MOCK_DATA = true; // Chuyen sang false khi da co API backend
-const PAGE_SIZE = 9; // 3 hang x 3 the
+const USE_MOCK_DATA = true; // Chuyển sang false khi có API backend
+const PAGE_SIZE = 9; // 3 hàng x 3 thẻ
 
 export default function HomePage() {
   const [venues, setVenues] = useState([]);
@@ -44,7 +44,7 @@ export default function HomePage() {
       setHasMore(more);
     } catch (err) {
       console.error("Failed to load venues:", err);
-      setError("Khong the tai danh sach san. Vui long thu lai.");
+      setError("Không thể tải danh sách sân. Vui lòng thử lại.");
       setHasMore(false);
     } finally {
       setLoading(false);
@@ -98,18 +98,18 @@ export default function HomePage() {
           {venues.length > 0 ? (
             venues.map((venue) => <VenueCard key={venue.id} venue={venue} />)
           ) : (
-            <div className="no-venues">Khong tim thay san nao</div>
+            <div className="no-venues">Không tìm thấy sân nào</div>
           )}
         </div>
 
         <div ref={loadMoreRef} style={{ height: 1 }} />
 
         {loading && venues.length > 0 && (
-          <div className="loading-more">Dang tai them san...</div>
+          <div className="loading-more">Đang tải thêm sân...</div>
         )}
 
         {!hasMore && venues.length > 0 && (
-          <div className="loading-more done">Da tai het danh sach san.</div>
+          <div className="loading-more done">Đã tải hết sân phù hợp bạn nhé!</div>
         )}
       </div>
     </div>

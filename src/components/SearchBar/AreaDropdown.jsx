@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { FiChevronDown } from "react-icons/fi";
 import "./searchBar.css";
 
 export default function AreaDropdown({ provinceId, selected, onSelect }) {
@@ -18,8 +19,9 @@ export default function AreaDropdown({ provinceId, selected, onSelect }) {
           `https://esgoo.net/api-tinhthanh/2/${provinceId}.htm`
         );
         const data = await res.json();
-        if (mounted && data && data.error === 0 && Array.isArray(data.data))
+        if (mounted && data && data.error === 0 && Array.isArray(data.data)) {
           setItems(data.data);
+        }
       } catch (e) {
         console.error("District load error", e);
       }
@@ -32,22 +34,39 @@ export default function AreaDropdown({ provinceId, selected, onSelect }) {
 
   useEffect(() => {
     function onDoc(e) {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+      }
     }
     document.addEventListener("click", onDoc);
     return () => document.removeEventListener("click", onDoc);
   }, []);
 
   return (
-    <div className="filter-wrap" ref={ref}>
+    <div
+      className="filter-wrap"
+      ref={ref}
+      onClick={(e) => e.stopPropagation()}
+    >
       <button
         className={`filter ${open ? "open" : ""}`}
-        onClick={() => setOpen((v) => !v)}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
         aria-haspopup="listbox"
         aria-expanded={open}
         disabled={!provinceId}
+        type="button"
       >
-        {(selected && selected.full_name) || "Khu vực"} ▾
+        <span
+          className={`filter-label ${
+            selected ? "filled" : provinceId ? "" : "placeholder"
+          }`}
+        >
+          {(selected && selected.full_name) || "Khu vực"}
+        </span>
+        <FiChevronDown className="filter-caret" aria-hidden="true" />
       </button>
       {open && (
         <ul className="filter-dropdown" role="listbox">

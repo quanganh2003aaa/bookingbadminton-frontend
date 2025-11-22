@@ -1,12 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
+import { FiSliders } from "react-icons/fi";
 import "./searchBar.css";
 import SearchInput from "./SearchInput";
 import Filters from "./Filters";
 
-const DISTANCES = ["< 1 km", "1-3 km", "3-5 km", "> 5 km"];
-
 export default function SearchBar() {
-  const [open, setOpen] = useState(null); // 'province' | 'area' | 'distance' | null
   const [selected, setSelected] = useState({
     province: null,
     area: null,
@@ -14,22 +12,6 @@ export default function SearchBar() {
   });
   const [searchText, setSearchText] = useState("");
   const rootRef = useRef(null);
-
-  useEffect(() => {
-    function handleClickOutside(e) {
-      if (rootRef.current && !rootRef.current.contains(e.target)) {
-        setOpen(null);
-      }
-    }
-    document.addEventListener("click", handleClickOutside);
-    return () => document.removeEventListener("click", handleClickOutside);
-  }, []);
-
-  // keep SearchBar as coordinator of selected values
-
-  function toggle(key) {
-    setOpen((prev) => (prev === key ? null : key));
-  }
 
   function handleSelect(key, value) {
     setSelected((s) => {
@@ -40,24 +22,31 @@ export default function SearchBar() {
     });
   }
 
+  const handleSearch = () => {
+    console.log("Search triggered", {
+      query: searchText,
+      filters: selected,
+    });
+  };
+
   return (
     <div className="searchbar" ref={rootRef}>
-      <div className="container search-inner">
-        <div className="searchbar-search">
+      <div className="container">
+        <div className="search-inner">
           <SearchInput
             value={searchText}
             onChange={(v) => setSearchText(v)}
-            onSearch={() => {
-              // simple search handler: for now, log the payload
-              console.log("Search triggered", {
-                query: searchText,
-                filters: selected,
-              });
-            }}
+            onSearch={handleSearch}
           />
-        </div>
 
-        <div className="searchbar-filter">
+          <button
+            type="button"
+            className="filter-trigger"
+            aria-label="Bộ lọc"
+          >
+            <FiSliders />
+          </button>
+
           <Filters selected={selected} onSelect={handleSelect} />
         </div>
       </div>

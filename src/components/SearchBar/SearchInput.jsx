@@ -5,6 +5,11 @@ import { FiSearch } from "react-icons/fi";
 export default function SearchInput({ value, onChange, onSearch }) {
   return (
     <div className="search-input-wrap">
+      <FiSearch
+        className="search-leading-icon"
+        aria-hidden="true"
+        onClick={() => onSearch && onSearch()}
+      />
       <input
         type="text"
         className="search-input"
@@ -14,13 +19,6 @@ export default function SearchInput({ value, onChange, onSearch }) {
         onChange={(e) => onChange && onChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSearch && onSearch()}
       />
-      <button
-        className="search-icon"
-        aria-label="search"
-        onClick={() => onSearch && onSearch()}
-      >
-        <FiSearch aria-hidden="true" />
-      </button>
     </div>
   );
 }
