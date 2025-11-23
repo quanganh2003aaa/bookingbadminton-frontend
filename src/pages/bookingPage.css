@@ -1,0 +1,218 @@
+@import "../styles/variables.css";
+
+.booking-page {
+  min-height: 100vh;
+  background: var(--color-gray-50);
+  padding: 16px;
+}
+
+.booking-card {
+  background: var(--color-white);
+  border-radius: 10px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+}
+
+.booking-legend {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--color-border);
+  justify-content: space-between;
+}
+
+.legend-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.legend-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.legend-color {
+  width: 30px;
+  height: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  display: inline-block;
+}
+
+.booking-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-white);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.booking-filter input[type="date"] {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.booking-filter input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
+
+.booking-grid {
+  overflow-x: auto;
+}
+
+.grid-scroll {
+  min-width: max-content;
+  overflow-x: auto;
+  padding: 8px 8px 0;
+}
+
+.grid-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.grid-scroll::-webkit-scrollbar-track {
+  background: var(--color-gray-100);
+  border-radius: 8px;
+}
+.grid-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 8px;
+}
+
+.grid-header,
+.grid-row {
+  display: grid;
+  grid-template-columns: 80px repeat(auto-fit, minmax(60px, 1fr));
+}
+
+.grid-header {
+  background: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.grid-time {
+  padding: 10px 4px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  border-left: 1px solid var(--color-border);
+}
+
+.time-label {
+  padding: 8px 0 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.grid-row {
+  min-height: 40px;
+}
+
+.grid-court-col {
+  padding: 10px;
+  font-weight: 600;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-gray-100);
+}
+
+.grid-cell {
+  border-left: 1px solid #b5b5b5;
+  border-bottom: 1px solid #b5b5b5;
+  cursor: pointer;
+  transition: transform 120ms ease;
+  position: relative;
+}
+
+.grid-cell:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.grid-cell:hover {
+  transform: scale(1.01);
+}
+
+.grid-cell.cell-selected {
+  box-shadow: inset 0 0 0 2px rgba(10, 95, 38, 0.35);
+  background: #0a5f26 !important;
+}
+
+.grid-cell.cell-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+  border-radius: 2px;
+}
+
+.booking-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+  border-top: 1px solid var(--color-border);
+}
+
+.booking-total {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.booking-action {
+  background: #bb2f2f;
+  color: var(--color-white);
+  border: none;
+  border-radius: 6px;
+  padding: 14px 28px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(187, 47, 47, 0.3);
+}
+
+.booking-action:hover {
+  background: #a42727;
+}
+
+@media (max-width: 900px) {
+  .grid-header,
+  .grid-row {
+    grid-template-columns: 72px repeat(19, minmax(80px, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .booking-footer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .booking-action {
+    width: 100%;
+    text-align: center;
+  }
+}

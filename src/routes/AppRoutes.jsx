@@ -9,6 +9,7 @@ import RegisterPage from "../pages/RegisterPage";
 import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import OwnerLoginPage from "../pages/OwnerLoginPage";
 import ManagerRegisterPage from "../pages/ManagerRegisterPage";
+import BookingPage from "../pages/BookingPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <HomePage /> },
+      { path: "booking", element: <BookingPage /> },
     ],
   },
 
