@@ -1,12 +1,27 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { mockVenues } from "../services/mockData";
 import "./bookingPage.css";
 
-const operatingHours = { start: "05:00", end: "23:00" };
+const COURT_COL_WIDTH = 100;
+const SLOT_WIDTH = 80;
 const slotDuration = 30; // minutes
+const selectedVenue = mockVenues?.[0];
+const operatingHours = {
+  start: selectedVenue?.startTime || "05:00",
+  end: selectedVenue?.endTime || "00:00",
+};
 const rates = [
   { start: "05:00", end: "17:00", price: 60000 },
-  { start: "17:00", end: "23:00", price: 80000 },
+  { start: "17:00", end: "00:00", price: 80000 },
 ];
+
+function getTodayIsoLocal() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = `${now.getMonth() + 1}`.padStart(2, "0");
+  const d = `${now.getDate()}`.padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
 
 // Mock booking ranges (in a real app, fetched from BE)
 const mockBookings = [
@@ -51,14 +66,22 @@ function parseTime(str) {
 }
 
 function formatTimeLabel(totalMinutes) {
-  const h = Math.floor(totalMinutes / 60);
-  const m = totalMinutes % 60;
+  const normalized =
+    ((totalMinutes % (24 * 60)) + 24 * 60) % (24 * 60); // keep within a day
+  const h = Math.floor(normalized / 60);
+  const m = normalized % 60;
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}`;
 }
 
-function buildSlots({ start, end, step, lockUntilMin }) {
+function getTimeRange(start, end) {
   const startMin = parseTime(start);
-  const endMin = parseTime(end);
+  let endMin = parseTime(end);
+  if (endMin <= startMin) endMin += 24 * 60; // handle overnight end like 00:00
+  return { startMin, endMin };
+}
+
+function buildSlots({ start, end, step, lockUntilMin }) {
+  const { startMin, endMin } = getTimeRange(start, end);
   const nowMin = typeof lockUntilMin === "number" ? lockUntilMin : -Infinity;
 
   const slots = [];
@@ -76,11 +99,14 @@ function buildSlots({ start, end, step, lockUntilMin }) {
 }
 
 function findPriceForTime(minute) {
-  const timeStr = formatTimeLabel(minute);
-  const rule = rates.find(
-    (r) => minute >= parseTime(r.start) && minute < parseTime(r.end)
-  );
-  return rule ? rule.price : 0;
+  for (const rule of rates) {
+    const start = parseTime(rule.start);
+    let end = parseTime(rule.end);
+    if (end <= start) end += 24 * 60; // handle overnight rate ending at 00:00
+    const current = minute < start ? minute + 24 * 60 : minute;
+    if (current >= start && current < end) return rule.price;
+  }
+  return 0;
 }
 
 function applyBookings(slots, bookings) {
@@ -98,7 +124,7 @@ function applyBookings(slots, bookings) {
 }
 
 export default function BookingPage() {
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = getTodayIsoLocal();
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const gridScrollRef = useRef(null);
 
@@ -107,13 +133,24 @@ export default function BookingPage() {
       start: operatingHours.start,
       end: operatingHours.end,
       step: slotDuration,
-      lockUntilMin: calcLockUntil(slotDuration, todayIso, todayIso),
+      lockUntilMin: calcLockUntil(
+        slotDuration,
+        todayIso,
+        todayIso,
+        operatingHours.start,
+        operatingHours.end
+      ),
     })
   );
 
   const gridTemplate = useMemo(
-    () => `100px repeat(${baseSlots.length}, 80px)`,
-    [baseSlots]
+    () =>
+      `${COURT_COL_WIDTH}px repeat(${baseSlots.length}, ${SLOT_WIDTH}px)`,
+    [baseSlots.length]
+  );
+  const gridWidth = useMemo(
+    () => COURT_COL_WIDTH + baseSlots.length * SLOT_WIDTH,
+    [baseSlots.length]
   );
 
   const [courts, setCourts] = useState(() =>
@@ -124,7 +161,13 @@ export default function BookingPage() {
   );
 
   useEffect(() => {
-    const lockUntil = calcLockUntil(slotDuration, selectedDate, todayIso);
+    const lockUntil = calcLockUntil(
+      slotDuration,
+      selectedDate,
+      todayIso,
+      operatingHours.start,
+      operatingHours.end
+    );
     const slots = buildSlots({
       start: operatingHours.start,
       end: operatingHours.end,
@@ -143,17 +186,22 @@ export default function BookingPage() {
   useEffect(() => {
     if (selectedDate !== todayIso) return;
     if (!baseSlots.length) return;
-    const lockUntil = calcLockUntil(slotDuration, selectedDate, todayIso);
+    const lockUntil = calcLockUntil(
+      slotDuration,
+      selectedDate,
+      todayIso,
+      operatingHours.start,
+      operatingHours.end
+    );
     const targetIdx =
       baseSlots.findIndex((s) => s.minutes >= (lockUntil ?? 0)) >= 0
         ? baseSlots.findIndex((s) => s.minutes >= (lockUntil ?? 0))
         : baseSlots.length - 1;
-    const slotWidth = 80;
-    const leftOffset = 100 + targetIdx * slotWidth;
+    const leftOffset = COURT_COL_WIDTH + targetIdx * SLOT_WIDTH;
     const el = gridScrollRef.current;
     if (el) {
       const scrollLeft = Math.max(
-        leftOffset - el.clientWidth / 2 + slotWidth / 2,
+        leftOffset - el.clientWidth / 2 + SLOT_WIDTH / 2,
         0
       );
       el.scrollTo({ left: scrollLeft, behavior: "smooth" });
@@ -215,25 +263,38 @@ export default function BookingPage() {
 
         <div className="booking-grid">
           <div className="grid-scroll" ref={gridScrollRef}>
-            <div className="grid-header" style={{ gridTemplateColumns: gridTemplate }}>
+            <div
+              className="grid-header"
+              style={{
+                gridTemplateColumns: gridTemplate,
+                width: `${gridWidth}px`,
+              }}
+            >
               <div className="grid-court-col" />
-            <TimeScale
-              slots={baseSlots}
-              start={operatingHours.start}
-              end={operatingHours.end}
-              step={slotDuration}
-            />
-          </div>
+              <TimeScale
+                slots={baseSlots}
+                start={operatingHours.start}
+                end={operatingHours.end}
+                step={slotDuration}
+                slotWidth={SLOT_WIDTH}
+                courtColWidth={COURT_COL_WIDTH}
+                gridWidth={gridWidth}
+              />
+            </div>
 
-          {courts.map((court, ci) => (
+            {courts.map((court, ci) => (
               <div
                 className="grid-row"
                 key={court.name}
-                style={{ gridTemplateColumns: gridTemplate }}
+                style={{
+                  gridTemplateColumns: gridTemplate,
+                  width: `${gridWidth}px`,
+                }}
               >
                 <div className="grid-court-col">{court.name}</div>
                 {court.slots.map((slot, si) => {
-                  const baseColor = statusColors[slot.baseStatus] || statusColors.empty;
+                  const baseColor =
+                    statusColors[slot.baseStatus] || statusColors.empty;
                   const overlayClass = slot.locked ? " cell-locked" : "";
                   const selectedClass = slot.selected ? " cell-selected" : "";
                   const isLocked = slot.locked;
@@ -248,7 +309,9 @@ export default function BookingPage() {
                       onKeyDown={(e) => {
                         if (!isLocked && e.key === "Enter") toggleSlot(ci, si);
                       }}
-                      aria-label={`${court.name} ${slot.label}, trạng thái ${slot.baseStatus}${slot.locked ? " (khóa)" : ""}`}
+                      aria-label={`${court.name} ${slot.label}, trạng thái ${
+                        slot.baseStatus
+                      }${slot.locked ? " (khóa)" : ""}`}
                     />
                   );
                 })}
@@ -283,35 +346,43 @@ function LegendItem({ color, label, borderColor }) {
   );
 }
 
-function TimeScale({ slots, start, end, step }) {
-  const startMin = parseTime(start);
-  const endMin = parseTime(end);
+function TimeScale({
+  slots,
+  start,
+  end,
+  step,
+  slotWidth,
+  courtColWidth,
+  gridWidth,
+}) {
+  const { startMin, endMin } = getTimeRange(start, end);
   const items = [];
-  for (let t = startMin; t < endMin; t += 60) {
-    const slotIdx = Math.floor((t - startMin) / step);
+  for (let t = startMin; t <= endMin; t += 60) {
+    const offsetSlots = (t - startMin) / step;
     const label = formatTimeLabel(t);
-    items.push({ label, slotIdx });
+    items.push({
+      label,
+      left: courtColWidth + offsetSlots * slotWidth,
+    });
   }
 
   return (
-    <>
-      <div className="grid-court-col" />
-      {items.map(({ label, slotIdx }) => (
-        <div
-          key={label}
-          className="time-label"
-          style={{ gridColumn: `${slotIdx + 2} / span 2` }}
-        >
+    <div className="time-scale" style={{ width: `${gridWidth}px` }}>
+      {items.map(({ label, left }) => (
+        <div key={`${label}-${left}`} className="time-label" style={{ left }}>
           {label}
         </div>
       ))}
-    </>
+    </div>
   );
 }
 
-function calcLockUntil(stepMinutes, selectedDateIso, todayIso) {
+function calcLockUntil(stepMinutes, selectedDateIso, todayIso, start, end) {
   if (selectedDateIso !== todayIso) return null;
+  const { startMin, endMin } = getTimeRange(start, end);
   const now = new Date();
   const minutesNow = now.getHours() * 60 + now.getMinutes();
-  return Math.ceil((minutesNow + 30) / stepMinutes) * stepMinutes;
+  const rounded = Math.ceil((minutesNow + 30) / stepMinutes) * stepMinutes;
+  const clamped = Math.min(Math.max(rounded, startMin), endMin);
+  return clamped;
 }
