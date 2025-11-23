@@ -10,6 +10,7 @@ import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import OwnerLoginPage from "../pages/OwnerLoginPage";
 import ManagerRegisterPage from "../pages/ManagerRegisterPage";
 import BookingPage from "../pages/BookingPage";
+import PayingPage from "../pages/PayingPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <HomePage /> },
       { path: "booking", element: <BookingPage /> },
+      { path: "paying", element: <PayingPage /> },
     ],
   },
 

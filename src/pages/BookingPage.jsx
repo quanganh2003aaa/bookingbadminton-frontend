@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { mockVenues } from "../services/mockData";
 import "./bookingPage.css";
 
@@ -127,6 +128,7 @@ export default function BookingPage() {
   const todayIso = getTodayIsoLocal();
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const gridScrollRef = useRef(null);
+  const navigate = useNavigate();
 
   const [baseSlots, setBaseSlots] = useState(() =>
     buildSlots({
@@ -324,7 +326,13 @@ export default function BookingPage() {
           <div className="booking-total">
             Tổng tiền: {totalPrice.toLocaleString("vi-VN")} VND
           </div>
-          <button className="booking-action">Tiến hành đặt sân</button>
+          <button
+            className="booking-action"
+            type="button"
+            onClick={() => navigate("/paying")}
+          >
+            Tiến hành đặt sân
+          </button>
         </div>
       </div>
     </div>
