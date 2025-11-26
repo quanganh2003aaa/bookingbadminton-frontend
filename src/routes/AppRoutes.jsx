@@ -11,6 +11,7 @@ import OwnerLoginPage from "../pages/OwnerLoginPage";
 import ManagerRegisterPage from "../pages/ManagerRegisterPage";
 import BookingPage from "../pages/BookingPage";
 import PayingPage from "../pages/PayingPage";
+import UserInfoPage from "../pages/UserInfoPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: "booking", element: <BookingPage /> },
       { path: "paying", element: <PayingPage /> },
+      { path: "info-user", element: <UserInfoPage /> },
     ],
   },
 
