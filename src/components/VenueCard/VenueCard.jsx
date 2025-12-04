@@ -2,11 +2,23 @@ import React from "react";
 import "./venueCard.css";
 import { FiMapPin, FiClock, FiPhone } from "react-icons/fi";
 
-export default function VenueCard({ venue }) {
+export default function VenueCard({ venue, onSelect, onBook }) {
   const { logo, name, address, phone, startTime, endTime, image } = venue;
 
+  const handleSelect = () => {
+    if (onSelect) onSelect(venue);
+  };
+
   return (
-    <div className="venue-card">
+    <div
+      className="venue-card"
+      onClick={handleSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") handleSelect();
+      }}
+    >
       <div className="venue-card-image">
         <img src={image} alt={name} />
       </div>
@@ -42,7 +54,14 @@ export default function VenueCard({ venue }) {
           </div>
         </div>
 
-        <button className="btn-booking" type="button">
+        <button
+          className="btn-booking"
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (onBook) onBook(venue);
+          }}
+        >
           ĐẶT LỊCH
         </button>
       </div>

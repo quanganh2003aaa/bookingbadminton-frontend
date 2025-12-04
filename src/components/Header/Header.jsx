@@ -1,9 +1,13 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./header.css";
 import SearchBar from "../SearchBar/SearchBar";
 import logo from "../../assets/Logo.png";
 
 export default function Header() {
+  const navigate = useNavigate();
+  // TODO: lấy thông tin user từ state/auth thực tế
+  const user = { name: "Pham Van A" };
+
   return (
     <header className="site-header">
       <div className="topbar">
@@ -23,9 +27,19 @@ export default function Header() {
             </nav>
 
             <div className="profile">
-              <button className="profile-btn">
-                Pham Van A <span className="arrow">→</span>
-              </button>
+              {user ? (
+                <button
+                  className="profile-btn"
+                  type="button"
+                  onClick={() => navigate("/info-user")}
+                >
+                  {user.name} <span className="arrow">→</span>
+                </button>
+              ) : (
+                <Link to="/login" className="profile-login">
+                  Đăng nhập
+                </Link>
+              )}
             </div>
           </div>
         </div>

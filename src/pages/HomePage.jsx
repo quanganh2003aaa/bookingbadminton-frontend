@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import VenueCard from "../components/VenueCard/VenueCard";
+import VenueDetailModal from "../components/VenueDetailModal/VenueDetailModal";
 import Loading from "../components/Loading";
 import { getAllVenues } from "../services/venueService";
 import { mockVenues } from "../services/mockData";
@@ -9,8 +11,10 @@ const USE_MOCK_DATA = true; // Chuyển sang false khi có API backend
 const PAGE_SIZE = 9; // 3 hàng x 3 thẻ
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [venues, setVenues] = useState([]);
   const [page, setPage] = useState(1);
+  const [selectedVenue, setSelectedVenue] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -96,7 +100,14 @@ export default function HomePage() {
 
         <div className="venues-grid">
           {venues.length > 0 ? (
-            venues.map((venue) => <VenueCard key={venue.id} venue={venue} />)
+            venues.map((venue) => (
+              <VenueCard
+                key={venue.id}
+                venue={venue}
+                onBook={() => navigate("/booking")}
+                onSelect={(v) => setSelectedVenue(v)}
+              />
+            ))
           ) : (
             <div className="no-venues">Không tìm thấy sân nào</div>
           )}
@@ -109,9 +120,19 @@ export default function HomePage() {
         )}
 
         {!hasMore && venues.length > 0 && (
-          <div className="loading-more done">Đã tải hết sân phù hợp bạn nhé!</div>
+          <div className="loading-more done">
+            Đã tải hết sân phù hợp bạn nhé!
+          </div>
         )}
       </div>
+
+      {selectedVenue && (
+        <VenueDetailModal
+          venue={selectedVenue}
+          onClose={() => setSelectedVenue(null)}
+          onBook={() => navigate("/booking")}
+        />
+      )}
     </div>
   );
 }

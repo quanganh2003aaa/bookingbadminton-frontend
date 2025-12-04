@@ -1,7 +1,7 @@
 import avatar from "../assets/logoV1.png";
 
 // Mock venue data for development. Switch to API responses when backend is ready.
-export const mockVenues = [
+const venueList = [
   {
     id: 1,
     logo: avatar,
@@ -306,3 +306,46 @@ export const mockVenues = [
       "/venues/stock-photo-badminton-sport-equipments-rackets-and-shuttlecocks-on-dark-floor-of-indoor-badminton-court-soft-2308214041.jpg",
   },
 ];
+
+const DEFAULT_MAP_EMBED =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.45387538003!2d105.79940247510444!3d21.01422168823806!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab62bc0ff7a7%3A0x8f9d4fd6d28d63aa!2zMTIgS2h14buzYSBEdeG7mWkgVMSpbiwgVGhhbmggWHXDom4sIEjDoCBO4buZaQ!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s";
+
+const DEFAULT_IMAGES = [
+  "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg",
+  "/venues/5b8a54ac1f19075b38e619d5f0f5b961.jpg",
+  "/venues/9720da0dacd6fc611c2ff536b296196c.jpg",
+];
+
+const DEFAULT_PRICING = [
+  { time: "05:00 - 08:00", price: 60000 },
+  { time: "08:00 - 17:00", price: 70000 },
+  { time: "17:00 - 23:00", price: 80000 },
+];
+
+const DEFAULT_REVIEWS = [
+  {
+    id: 1,
+    name: "Nguyễn Văn B",
+    avatar: "",
+    rating: 5,
+    comment: "Sân sạch, nhân viên thân thiện, đặt lịch nhanh.",
+  },
+  {
+    id: 2,
+    name: "Trần Thị C",
+    avatar: "",
+    rating: 4,
+    comment: "Giá hợp lý, hệ thống đèn tốt. Thỉnh thoảng hơi đông.",
+  },
+];
+
+export const mockVenues = venueList.map((v, idx) => ({
+  ...v,
+  mapEmbed: v.mapEmbed || DEFAULT_MAP_EMBED,
+  images: v.images || DEFAULT_IMAGES,
+  pricing: v.pricing || DEFAULT_PRICING,
+  reviews: v.reviews || DEFAULT_REVIEWS.map((r) => ({
+    ...r,
+    id: `${idx + 1}-${r.id}`,
+  })),
+}));

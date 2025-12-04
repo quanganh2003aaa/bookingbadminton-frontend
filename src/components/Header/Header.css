@@ -77,6 +77,21 @@
     font-size: 16px;
 }
 
+.profile-login {
+  background: var(--color-white);
+  color: var(--color-primary-dark);
+  border-radius: var(--radius-full);
+  padding: 10px 16px;
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-login:hover {
+  background: var(--color-hover-dark);
+  color: var(--color-white);
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
 	.header-inner { height: 110px; padding: 8px 0; }

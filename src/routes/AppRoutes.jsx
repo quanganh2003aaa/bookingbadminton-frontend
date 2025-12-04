@@ -2,20 +2,31 @@ import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../layouts/AppLayout";
 import AppLayoutAdmin from "../layouts/AppLayoutAdmin";
 import AuthLayout from "../layouts/AuthLayout";
-
+import BookingPage from "../pages/BookingPage";
+import ForgotPasswordPage from "../pages/ForgotPasswordPage";
 import HomePage from "../pages/HomePage";
 import LoginPage from "../pages/LoginPage";
-import RegisterPage from "../pages/RegisterPage";
-import ForgotPasswordPage from "../pages/ForgotPasswordPage";
-import OwnerLoginPage from "../pages/OwnerLoginPage";
 import ManagerRegisterPage from "../pages/ManagerRegisterPage";
-import BookingPage from "../pages/BookingPage";
-import PayingPage from "../pages/PayingPage";
-import UserInfoPage from "../pages/UserInfoPage";
 import NotFoundPage from "../pages/NotFoundPage";
+import OwnerLoginPage from "../pages/OwnerLoginPage";
+import PayingPage from "../pages/PayingPage";
+import RegisterPage from "../pages/RegisterPage";
+import UserInfoPage from "../pages/UserInfoPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 
-export const router = createBrowserRouter([
+const authRoutes = [
+  { path: "/login", element: <LoginPage /> },
+  { path: "/register", element: <RegisterPage /> },
+  { path: "/forgot-password", element: <ForgotPasswordPage /> },
+  { path: "/owner-login", element: <OwnerLoginPage /> },
+  { path: "/manager-register", element: <ManagerRegisterPage /> },
+].map(({ path, element }) => ({
+  path,
+  element: <AuthLayout />,
+  children: [{ index: true, element }],
+}));
+
+const appRoutes = [
   {
     path: "/",
     element: <AppLayout />,
@@ -26,39 +37,15 @@ export const router = createBrowserRouter([
       { path: "info-user", element: <UserInfoPage /> },
     ],
   },
-
-  {
-    path: "/login",
-    element: <AuthLayout />,
-    children: [{ index: true, element: <LoginPage /> }],
-  },
-  {
-    path: "/register",
-    element: <AuthLayout />,
-    children: [{ index: true, element: <RegisterPage /> }],
-  },
-  {
-    path: "/forgot-password",
-    element: <AuthLayout />,
-    children: [{ index: true, element: <ForgotPasswordPage /> }],
-  },
-  {
-    path: "/owner-login",
-    element: <AuthLayout />,
-    children: [{ index: true, element: <OwnerLoginPage /> }],
-  },
-  {
-    path: "/manager-register",
-    element: <AuthLayout />,
-    children: [{ index: true, element: <ManagerRegisterPage /> }],
-  },
-
   {
     path: "/admin",
     element: <AppLayoutAdmin />,
     children: [{ index: true, element: <HomePageAdmin /> }],
   },
+];
 
+export const router = createBrowserRouter([
+  ...appRoutes,
+  ...authRoutes,
   { path: "*", element: <NotFoundPage /> },
 ]);
-// TODO: xem lai router
