@@ -22,11 +22,21 @@ export default function SearchBar() {
     });
   };
 
+  const emitSearch = (query) => {
+    window.dispatchEvent(
+      new CustomEvent("venue-search", {
+        detail: { query, filters: selected },
+      })
+    );
+  };
+
   const handleSearch = () => {
-    console.log("Search triggered", {
-      query: searchText,
-      filters: selected,
-    });
+    emitSearch(searchText.trim());
+  };
+
+  const handleChange = (value) => {
+    setSearchText(value);
+    emitSearch(value.trim());
   };
 
   return (
@@ -35,14 +45,14 @@ export default function SearchBar() {
         <div className="search-inner">
           <SearchInput
             value={searchText}
-            onChange={(v) => setSearchText(v)}
+            onChange={handleChange}
             onSearch={handleSearch}
           />
 
           <button
             type="button"
             className="filter-trigger"
-            aria-label="Bộ lọc"
+            aria-label="Bật lọc"
           >
             <FiSliders />
           </button>

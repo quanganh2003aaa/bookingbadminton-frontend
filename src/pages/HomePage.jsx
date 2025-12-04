@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import VenueCard from "../components/VenueCard/VenueCard";
 import VenueDetailModal from "../components/VenueDetailModal/VenueDetailModal";
@@ -19,6 +19,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [hasUserScrolled, setHasUserScrolled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const loadMoreRef = useRef(null);
 
   const fetchPage = useCallback(async (targetPage) => {
@@ -87,6 +88,27 @@ export default function HomePage() {
     };
   }, [hasMore, loading, hasUserScrolled]);
 
+  useEffect(() => {
+    const handler = (e) => {
+      setSearchTerm(e.detail?.query || "");
+    };
+    window.addEventListener("venue-search", handler);
+    return () => window.removeEventListener("venue-search", handler);
+  }, []);
+
+  const displayedVenues = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    let list = venues;
+    if (q) {
+      list = venues.filter((v) => v.name?.toLowerCase().includes(q));
+    }
+    // Khi có rating từ BE: ưu tiên sort theo rating desc
+    if (list.length && typeof list[0]?.rating !== "undefined") {
+      list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    }
+    return list;
+  }, [venues, searchTerm]);
+
   const isInitialLoading = page === 1 && loading && venues.length === 0;
 
   if (isInitialLoading) {
@@ -99,8 +121,8 @@ export default function HomePage() {
         {error && <div className="error-message">{error}</div>}
 
         <div className="venues-grid">
-          {venues.length > 0 ? (
-            venues.map((venue) => (
+          {displayedVenues.length > 0 ? (
+            displayedVenues.map((venue) => (
               <VenueCard
                 key={venue.id}
                 venue={venue}
