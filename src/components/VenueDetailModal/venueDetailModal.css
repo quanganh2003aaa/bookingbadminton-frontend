@@ -12,12 +12,16 @@
 }
 
 .venue-modal {
-  width: min(1100px, 90vw);
+  width: 1100px;
+  max-width: 92vw;
+  height: 90vh;
   background: var(--color-white);
   border-radius: 12px;
   overflow: hidden;
   position: relative;
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
 }
 
 .venue-modal-hero img {
@@ -30,6 +34,10 @@
 .venue-modal-body {
   padding: 16px 20px 20px;
   position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .venue-header {
@@ -144,23 +152,24 @@
   border-radius: 8px;
   padding: 18px;
   background: var(--color-gray-50);
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
 .images-scroll {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 6px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  overflow-y: auto;
 }
 
 .image-thumb {
-  min-width: 180px;
-  height: 120px;
+  height: 140px;
   border-radius: 8px;
   overflow: hidden;
   background: var(--color-gray-200);
   box-shadow: var(--shadow-sm);
-  flex-shrink: 0;
 }
 
 .image-thumb img {
@@ -247,7 +256,7 @@
 }
 
 .placeholder-panel {
-  min-height: 260px;
+  min-height: 200px;
   background: #bfbfbf;
   border-radius: 6px;
   display: grid;

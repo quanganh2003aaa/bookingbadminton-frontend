@@ -31,6 +31,15 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
     [images, image]
   );
 
+  const avgRating = useMemo(() => {
+    if (!reviews.length) return 0;
+    const total = reviews.reduce(
+      (sum, r) => sum + (typeof r.rating === "number" ? r.rating : 0),
+      0
+    );
+    return +(total / reviews.length).toFixed(1);
+  }, [reviews]);
+
   return (
     <div className="venue-modal-backdrop" onClick={onClose}>
       <div
@@ -81,7 +90,9 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
 
           <div className="venue-rating-pill">
             <FiStar />
-            <span>4.5 (15 đánh giá)</span>
+            <span>
+              {avgRating.toFixed(1)} ({reviews.length} đánh giá)
+            </span>
           </div>
 
           <div className="venue-tabs">

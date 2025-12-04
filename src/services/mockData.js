@@ -314,11 +314,23 @@ const DEFAULT_IMAGES = [
   "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg",
   "/venues/5b8a54ac1f19075b38e619d5f0f5b961.jpg",
   "/venues/9720da0dacd6fc611c2ff536b296196c.jpg",
+  "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg",
+  "/venues/5b8a54ac1f19075b38e619d5f0f5b961.jpg",
+  "/venues/9720da0dacd6fc611c2ff536b296196c.jpg",
+  "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg",
+  "/venues/5b8a54ac1f19075b38e619d5f0f5b961.jpg",
+  "/venues/9720da0dacd6fc611c2ff536b296196c.jpg",
+  "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg",
+  "/venues/5b8a54ac1f19075b38e619d5f0f5b961.jpg",
+  "/venues/9720da0dacd6fc611c2ff536b296196c.jpg"
 ];
 
 const DEFAULT_PRICING = [
   { time: "05:00 - 08:00", price: 60000 },
   { time: "08:00 - 17:00", price: 70000 },
+  { time: "17:00 - 23:00", price: 80000 },
+  { time: "17:00 - 23:00", price: 80000 },
+  { time: "17:00 - 23:00", price: 80000 },
   { time: "17:00 - 23:00", price: 80000 },
 ];
 
@@ -335,6 +347,48 @@ const DEFAULT_REVIEWS = [
     name: "Trần Thị C",
     avatar: "",
     rating: 4,
+    comment: "Giá hợp lý, hệ thống đèn tốt. Thỉnh thoảng hơi đông.",
+  },
+  {
+    id: 1,
+    name: "Nguyễn Văn B",
+    avatar: "",
+    rating: 5,
+    comment: "Sân sạch, nhân viên thân thiện, đặt lịch nhanh.",
+  },
+  {
+    id: 2,
+    name: "Trần Thị C",
+    avatar: "",
+    rating: 4,
+    comment: "Giá hợp lý, hệ thống đèn tốt. Thỉnh thoảng hơi đông.",
+  },
+  {
+    id: 1,
+    name: "Nguyễn Văn B",
+    avatar: "",
+    rating: 5,
+    comment: "Sân sạch, nhân viên thân thiện, đặt lịch nhanh.",
+  },
+  {
+    id: 2,
+    name: "Trần Thị C",
+    avatar: "",
+    rating: 4,
+    comment: "Giá hợp lý, hệ thống đèn tốt. Thỉnh thoảng hơi đông.",
+  },
+  {
+    id: 1,
+    name: "Nguyễn Văn B",
+    avatar: "",
+    rating: 5,
+    comment: "Sân sạch, nhân viên thân thiện, đặt lịch nhanh.",
+  },
+  {
+    id: 2,
+    name: "Trần Thị C",
+    avatar: "",
+    rating: 5,
     comment: "Giá hợp lý, hệ thống đèn tốt. Thỉnh thoảng hơi đông.",
   },
 ];
