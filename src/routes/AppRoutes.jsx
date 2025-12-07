@@ -9,10 +9,15 @@ import LoginPage from "../pages/LoginPage";
 import ManagerRegisterPage from "../pages/ManagerRegisterPage";
 import NotFoundPage from "../pages/NotFoundPage";
 import OwnerLoginPage from "../pages/OwnerLoginPage";
+import OwnerLayout from "../layouts/OwnerLayout";
 import PayingPage from "../pages/PayingPage";
 import RegisterPage from "../pages/RegisterPage";
 import UserInfoPage from "../pages/UserInfoPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
+import OwnerVenueInfoPage from "../pages/owner/OwnerVenueInfoPage";
+import OwnerCourtStatusPage from "../pages/owner/OwnerCourtStatusPage";
+import OwnerRevenuePage from "../pages/owner/OwnerRevenuePage";
+import OwnerAccountPage from "../pages/owner/OwnerAccountPage";
 
 const authRoutes = [
   { path: "/login", element: <LoginPage /> },
@@ -35,6 +40,16 @@ const appRoutes = [
       { path: "booking", element: <BookingPage /> },
       { path: "paying", element: <PayingPage /> },
       { path: "info-user", element: <UserInfoPage /> },
+    ],
+  },
+  {
+    path: "/owner",
+    element: <OwnerLayout />,
+    children: [
+      { index: true, element: <OwnerVenueInfoPage /> },
+      { path: "status", element: <OwnerCourtStatusPage /> },
+      { path: "revenue", element: <OwnerRevenuePage /> },
+      { path: "account", element: <OwnerAccountPage /> },
     ],
   },
   {

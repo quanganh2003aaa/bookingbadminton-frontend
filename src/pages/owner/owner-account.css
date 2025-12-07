@@ -1,0 +1,117 @@
+@import "../../styles/variables.css";
+
+.owner-account-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.owner-venues-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.owner-subtitle {
+  color: var(--color-text-secondary);
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+}
+
+.owner-venues-title {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.owner-account-card {
+  background: var(--color-white);
+  border: 1px solid var(--color-border-light);
+  border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.06);
+  padding: 22px 24px;
+  max-width: 720px;
+}
+
+.account-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.account-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #0f7b4d, #0e6d59);
+  color: var(--color-white);
+  display: grid;
+  place-items: center;
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
+.account-header h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+}
+
+.account-header p {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+}
+
+.account-field {
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-200);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-field span {
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.account-field strong {
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.primary-btn {
+  height: 44px;
+  padding: 0 16px;
+  background: var(--color-primary);
+  color: var(--color-white);
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 18px rgba(25, 112, 80, 0.2);
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.primary-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 24px rgba(25, 112, 80, 0.22);
+}
+
+@media (max-width: 720px) {
+  .owner-account-card {
+    padding: 18px 16px;
+  }
+}
