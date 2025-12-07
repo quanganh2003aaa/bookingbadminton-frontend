@@ -72,6 +72,7 @@
   background: linear-gradient(135deg, #ffffff, #f9fbff);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.04);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+  cursor: pointer;
 }
 
 .venue-item:hover {

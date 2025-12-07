@@ -80,3 +80,42 @@ export const ownerRevenues = [
     topHour: "16:00 - 18:00",
   },
 ];
+
+export const ownerVenueDetails = [
+  {
+    id: 1,
+    name: "Sân cầu lông đại học kiến trúc Hà Nội",
+    address: "Km 10, Đường Nguyễn Trãi, Quận Thanh Xuân, TP Hà Nội",
+    contact: "0987654321",
+    openTime: "07:00 AM",
+    closeTime: "11:00 PM",
+    status: "Hoạt động",
+    images: [
+      "/venues/image1.webp",
+      "/venues/image2.webp",
+      "/venues/imge3.webp",
+      "/venues/image1.webp",
+    ],
+    schedules: [
+      { start: "07:00 AM", end: "10:00 AM", day: "Thứ 2", price: "50.000 VND" },
+      { start: "05:00 PM", end: "07:00 PM", day: "Thứ 2", price: "50.000 VND" },
+      { start: "08:00 PM", end: "09:00 PM", day: "Thứ 2", price: "100.000 VND" },
+      { start: "09:00 PM", end: "11:00 PM", day: "Thứ 2", price: "70.000 VND" },
+    ],
+  },
+  {
+    id: 2,
+    name: "Sân Tây Hồ",
+    address: "68 Võ Chí Công, Tây Hồ, Hà Nội",
+    contact: "0911222333",
+    openTime: "06:00 AM",
+    closeTime: "10:00 PM",
+    status: "Hoạt động",
+    images: ["/venues/37baef48823fbeff66b7f4c79d9769b6.jpg"],
+    schedules: [
+      { start: "06:00 AM", end: "09:00 AM", day: "Thứ 3", price: "60.000 VND" },
+      { start: "05:00 PM", end: "07:00 PM", day: "Thứ 3", price: "70.000 VND" },
+      { start: "08:00 PM", end: "10:00 PM", day: "Thứ 3", price: "90.000 VND" },
+    ],
+  },
+];

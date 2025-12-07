@@ -18,6 +18,7 @@ import OwnerVenueInfoPage from "../pages/owner/OwnerVenueInfoPage";
 import OwnerCourtStatusPage from "../pages/owner/OwnerCourtStatusPage";
 import OwnerRevenuePage from "../pages/owner/OwnerRevenuePage";
 import OwnerAccountPage from "../pages/owner/OwnerAccountPage";
+import OwnerVenueDetailPage from "../pages/owner/OwnerVenueDetailPage";
 
 const authRoutes = [
   { path: "/login", element: <LoginPage /> },
@@ -50,6 +51,7 @@ const appRoutes = [
       { path: "status", element: <OwnerCourtStatusPage /> },
       { path: "revenue", element: <OwnerRevenuePage /> },
       { path: "account", element: <OwnerAccountPage /> },
+      { path: "venue/:id", element: <OwnerVenueDetailPage /> },
     ],
   },
   {

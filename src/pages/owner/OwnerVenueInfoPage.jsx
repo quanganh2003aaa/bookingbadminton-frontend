@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { ownerVenues } from "../../services/ownerMockData";
 import "./owner-venue-info.css";
 
@@ -5,6 +6,8 @@ const statusClass = (status) =>
   status.toLowerCase().includes("ngừng") ? "status-stop" : "status-ok";
 
 export default function OwnerVenueInfoPage() {
+  const navigate = useNavigate();
+
   return (
     <div className="owner-venues-page">
       <div className="owner-venues-header">
@@ -19,7 +22,19 @@ export default function OwnerVenueInfoPage() {
 
       <div className="owner-venues-card owner-venue-list">
         {ownerVenues.map((venue, index) => (
-          <div className="venue-item" key={venue.id}>
+          <div
+            className="venue-item"
+            key={venue.id}
+            onClick={() => navigate(`/owner/venue/${venue.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                navigate(`/owner/venue/${venue.id}`);
+              }
+            }}
+          >
             <div className="venue-index">
               {String(index + 1).padStart(2, "0")}
             </div>
@@ -46,7 +61,14 @@ export default function OwnerVenueInfoPage() {
                 {venue.averageScore} ★
                 <span className="score-count">({venue.ratingCount})</span>
               </div>
-              <button type="button" className="detail-btn">
+              <button
+                type="button"
+                className="detail-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/owner/venue/${venue.id}`);
+                }}
+              >
                 Xem chi tiết
               </button>
             </div>
