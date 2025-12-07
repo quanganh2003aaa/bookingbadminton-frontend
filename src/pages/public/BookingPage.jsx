@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { mockVenues } from "../services/mockData";
+import { mockVenues } from "../../services/mockData";
 import "./bookingPage.css";
 
 const COURT_COL_WIDTH = 100;

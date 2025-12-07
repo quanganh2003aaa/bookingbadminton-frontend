@@ -1,6 +1,6 @@
 import React from "react";
-import "./auth/register.css";
-import RegisterForm from "../components/Auth/RegisterForm";
+import "./register.css";
+import RegisterForm from "../../components/auth/RegisterForm";
 
 const registerImage = "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg";
 

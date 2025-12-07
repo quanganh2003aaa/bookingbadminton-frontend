@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import "./auth/manager-register.css";
-import ManagerRegisterForm from "../components/Auth/ManagerRegisterForm";
-import ManagerVenueForm from "../components/Auth/ManagerVenueForm";
-import ManagerPasscodeForm from "../components/Auth/ManagerPasscodeForm";
+import "./manager-register.css";
+import ManagerRegisterForm from "../../components/auth/ManagerRegisterForm";
+import ManagerVenueForm from "../../components/auth/ManagerVenueForm";
+import ManagerPasscodeForm from "../../components/auth/ManagerPasscodeForm";
 
 const managerRegisterBg =
   "https://images.unsplash.com/photo-1512446816042-444d641267d4?auto=format&fit=crop&w=1600&q=80";

@@ -5,7 +5,7 @@ import {
   FiYoutube,
   FiSend,
 } from "react-icons/fi";
-import logo from "../assets/logo.png";
+import logo from "../../assets/logo.png";
 import "./footer.css";
 
 export default function Footer() {

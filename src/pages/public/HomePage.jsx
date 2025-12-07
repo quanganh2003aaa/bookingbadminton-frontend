@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import VenueCard from "../components/VenueCard/VenueCard";
-import VenueDetailModal from "../components/VenueDetailModal/VenueDetailModal";
-import Loading from "../components/Loading";
-import { getAllVenues } from "../services/venueService";
-import { mockVenues } from "../services/mockData";
+import VenueCard from "../../components/venue/VenueCard/VenueCard";
+import VenueDetailModal from "../../components/venue/VenueDetailModal/VenueDetailModal";
+import Loading from "../../components/common/Loading";
+import { getAllVenues } from "../../services/venueService";
+import { mockVenues } from "../../services/mockData";
 import "./homePage.css";
 
 const USE_MOCK_DATA = true; // Chuyển sang false khi có API backend

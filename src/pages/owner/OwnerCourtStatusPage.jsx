@@ -1,4 +1,4 @@
-import { ownerStatuses } from "../../data/ownerMockData";
+import { ownerStatuses } from "../../services/ownerMockData";
 import "./owner-venue-info.css";
 
 const statusClass = (status) =>

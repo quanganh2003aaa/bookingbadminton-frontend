@@ -1,6 +1,6 @@
 import React from "react";
-import "./auth/forgot.css";
-import ForgotPasswordForm from "../components/Auth/ForgotPasswordForm";
+import "./forgot.css";
+import ForgotPasswordForm from "../../components/auth/ForgotPasswordForm";
 
 const forgotImage = "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg";
 

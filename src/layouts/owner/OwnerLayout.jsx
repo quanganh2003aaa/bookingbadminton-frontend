@@ -1,8 +1,8 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { FiActivity, FiGrid, FiTrendingUp, FiUser } from "react-icons/fi";
-import OwnerSidebar from "../components/Owner/OwnerSidebar";
-import OwnerTopbar from "../components/Owner/OwnerTopbar";
-import { ownerProfile } from "../data/ownerMockData";
+import OwnerSidebar from "../../components/owner/OwnerSidebar";
+import OwnerTopbar from "../../components/owner/OwnerTopbar";
+import { ownerProfile } from "../../services/ownerMockData";
 import "./owner-layout.css";
 
 const navItems = [

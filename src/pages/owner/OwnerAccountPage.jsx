@@ -1,4 +1,4 @@
-import { ownerProfile } from "../../data/ownerMockData";
+import { ownerProfile } from "../../services/ownerMockData";
 import "./owner-account.css";
 
 const displayName =

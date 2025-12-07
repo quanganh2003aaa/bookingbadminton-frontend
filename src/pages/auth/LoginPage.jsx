@@ -1,6 +1,6 @@
 import React from "react";
-import "./auth/login.css";
-import LoginForm from "../components/Auth/LoginForm";
+import "./login.css";
+import LoginForm from "../../components/auth/LoginForm";
 
 const loginImage = "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg";
 

@@ -1,4 +1,4 @@
-import { ownerRevenues } from "../../data/ownerMockData";
+import { ownerRevenues } from "../../services/ownerMockData";
 import "./owner-venue-info.css";
 
 export default function OwnerRevenuePage() {

@@ -1,6 +1,6 @@
 import React from "react";
-import "./auth/owner-login.css";
-import OwnerLoginForm from "../components/Auth/OwnerLoginForm";
+import "./owner-login.css";
+import OwnerLoginForm from "../../components/auth/OwnerLoginForm";
 
 const ownerLoginImage = "/venues/37baef48823fbeff66b7f4c79d9769b6.jpg";
 

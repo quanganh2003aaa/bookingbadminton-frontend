@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import "./header.css";
-import SearchBar from "../SearchBar/SearchBar";
-import logo from "../../assets/Logo.png";
+import SearchBar from "../../search/SearchBar";
+import logo from "../../../assets/logo.png";
 
 export default function Header() {
   const navigate = useNavigate();
