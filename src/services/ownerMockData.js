@@ -10,7 +10,7 @@ export const ownerVenues = [
   {
     id: 1,
     name: "Sân 12 Khuất Duy Tiến",
-    address: "12 Khuất Duy Tiến, Thanh Xuân",
+    address: "12 Khuất Duy Tiến, Thanh Xuân, Hà Nội",
     courts: 6,
     status: "Hoạt động",
     averageScore: 4.7,
@@ -19,7 +19,7 @@ export const ownerVenues = [
   {
     id: 2,
     name: "Sân Tây Hồ",
-    address: "68 Võ Chí Công, Tây Hồ",
+    address: "68 Võ Chí Công, Tây Hồ, Hà Nội",
     courts: 4,
     status: "Hoạt động",
     averageScore: 4.6,
@@ -28,7 +28,7 @@ export const ownerVenues = [
   {
     id: 3,
     name: "Sân Cầu Giấy",
-    address: "35 Trần Thái Tông, Cầu Giấy",
+    address: "35 Trần Thái Tông, Cầu Giấy, Hà Nội",
     courts: 5,
     status: "Ngừng hoạt động",
     averageScore: 4.3,
@@ -84,8 +84,8 @@ export const ownerRevenues = [
 export const ownerVenueDetails = [
   {
     id: 1,
-    name: "Sân cầu lông đại học kiến trúc Hà Nội",
-    address: "Km 10, Đường Nguyễn Trãi, Quận Thanh Xuân, TP Hà Nội",
+    name: "Sân 12 Khuất Duy Tiến",
+    address: "12 Khuất Duy Tiến, Thanh Xuân, Hà Nội",
     contact: "0987654321",
     openTime: "07:00",
     closeTime: "23:00",
@@ -98,7 +98,11 @@ export const ownerVenueDetails = [
       "/venues/imge3.webp",
       "/venues/image1.webp",
     ],
-    schedules: [],
+    schedules: [
+      { start: "07:00", end: "12:00", day: "Thứ 2", price: "60.000 VND" },
+      { start: "12:00", end: "18:00", day: "Thứ 2", price: "70.000 VND" },
+      { start: "18:00", end: "23:00", day: "Thứ 2", price: "90.000 VND" },
+    ],
   },
   {
     id: 2,
@@ -111,6 +115,10 @@ export const ownerVenueDetails = [
     mapLink:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7954691533527!2d105.80085521533194!3d20.99882568601433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acb9f4c1d2c9%3A0x9d8c40e4b1f8a4d0!2zS2hvYSDEkcO0bmcgTmdo4buFbiBUcsOtLCBUaGFuaCBYdeG6rW4!5e0!3m2!1svi!2svi!4v1700000000000!5m2!1svi!2svi",
     images: ["/venues/37baef48823fbeff66b7f4c79d9769b6.jpg"],
-    schedules: [],
+    schedules: [
+      { start: "06:00", end: "12:00", day: "Thứ 3", price: "65.000 VND" },
+      { start: "12:00", end: "17:00", day: "Thứ 3", price: "75.000 VND" },
+      { start: "17:00", end: "22:00", day: "Thứ 3", price: "95.000 VND" },
+    ],
   },
 ];

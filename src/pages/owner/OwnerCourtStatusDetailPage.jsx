@@ -8,45 +8,83 @@ const mockCourtStatusDetail = {
   id: 1,
   date: "2025-11-11",
   courts: [
-    { name: "Sân 1", bookings: [{ start: "05:00", end: "08:00", status: "locked" }] },
-    { name: "Sân 2", bookings: [{ start: "05:00", end: "07:30", status: "locked" }] },
-    { name: "Sân 3", bookings: [{ start: "05:00", end: "08:00", status: "locked" }] },
-    { name: "Sân 4", bookings: [{ start: "05:00", end: "10:00", status: "locked" }] },
+    {
+      name: "Sân 1",
+      bookings: [
+        { start: "07:00", end: "10:00", status: "booked" },
+        { start: "13:30", end: "15:30", status: "booked" },
+      ],
+    },
+    {
+      name: "Sân 2",
+      bookings: [
+        { start: "08:00", end: "10:00", status: "booked" },
+        { start: "15:30", end: "17:30", status: "booked" },
+      ],
+    },
+    {
+      name: "Sân 3",
+      bookings: [
+        { start: "06:00", end: "08:00", status: "locked" },
+        { start: "17:30", end: "19:30", status: "booked" },
+      ],
+    },
+    {
+      name: "Sân 4",
+      bookings: [{ start: "05:00", end: "09:00", status: "locked" }],
+    },
     {
       name: "Sân 5",
       bookings: [
-        { start: "17:00", end: "18:30", status: "booked" },
-        { start: "18:30", end: "20:30", status: "booked" },
+        { start: "18:00", end: "20:00", status: "booked" },
+        { start: "20:00", end: "22:00", status: "booked" },
       ],
     },
   ],
   tickets: [
     {
       id: 1,
-      time: "13:30 - 15:30",
+      time: "07:00 - 10:00",
       phone: "0987654321",
-      masked: "*****123",
-      customer: "Phạm văn A",
+      masked: "*****321",
+      customer: "Phạm Văn A",
       paid: true,
       amount: 200000,
+      court: "Sân 1",
+      date: "2025-11-11",
     },
     {
       id: 2,
-      time: "15:30 - 17:30",
+      time: "13:30 - 15:30",
       phone: "0911222333",
       masked: "*****233",
       customer: "Nguyễn Thị B",
       paid: false,
       amount: 180000,
+      court: "Sân 1",
+      date: "2025-11-11",
     },
     {
       id: 3,
-      time: "17:30 - 19:30",
+      time: "08:00 - 10:00",
+      phone: "0909888666",
+      masked: "*****666",
+      customer: "Lê Văn D",
+      paid: true,
+      amount: 180000,
+      court: "Sân 2",
+      date: "2025-11-11",
+    },
+    {
+      id: 4,
+      time: "15:30 - 17:30",
       phone: "0977333444",
       masked: "*****444",
       customer: "Trần Văn C",
       paid: true,
       amount: 250000,
+      court: "Sân 2",
+      date: "2025-11-11",
     },
   ],
 };
@@ -88,8 +126,11 @@ export default function OwnerCourtStatusDetailPage() {
         return s >= startMin && e <= endMin;
       }),
     }));
-    const tickets = data.tickets.filter((t) =>
-      rangeWithin(t.time, startMin, endMin)
+    const tickets = data.tickets.filter(
+      (t) =>
+        (filterCourt === "all" || t.court === filterCourt) &&
+        rangeWithin(t.time, startMin, endMin) &&
+        t.date === filterDate
     );
     setFilteredCourts(courts);
     setFilteredTickets(tickets);
