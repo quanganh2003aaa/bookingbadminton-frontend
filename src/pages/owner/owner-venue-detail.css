@@ -124,7 +124,7 @@
 
 .schedule-header {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.9fr;
+  grid-template-columns: 1.05fr 1.05fr 1fr 60px;
   font-weight: 700;
   color: var(--color-text-secondary);
   margin-bottom: 6px;
@@ -133,9 +133,9 @@
 
 .slot-row {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 0.9fr;
+  grid-template-columns: 1.05fr 1.05fr 1fr 60px;
   gap: 10px;
-  padding: 10px;
+  padding: 12px 14px;
   border: 1px solid var(--color-gray-200);
   border-radius: 12px;
   background: var(--color-gray-50);
@@ -153,6 +153,18 @@
   min-height: 44px;
 }
 
+.price-input {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.price-suffix {
+  font-weight: 800;
+  color: var(--color-text-secondary);
+}
+
 .slot-time {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
@@ -164,8 +176,38 @@
   cursor: not-allowed;
 }
 
-.add-slot-btn {
+.slot-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--color-gray-300);
+  background: #fff;
+  color: #d14343;
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.icon-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 14px rgba(0, 0, 0, 0.08);
+}
+
+.schedule-actions {
   margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.add-slot-btn {
   width: 100%;
   height: 44px;
   border-radius: 10px;
@@ -173,7 +215,17 @@
   background: var(--color-gray-100);
   color: var(--color-text-secondary);
   font-weight: 800;
+  cursor: pointer;
+}
+
+.add-slot-btn:disabled {
   cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.slot-confirm {
+  display: flex;
+  gap: 10px;
 }
 
 .gallery-card h3 {

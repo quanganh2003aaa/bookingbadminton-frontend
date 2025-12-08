@@ -98,12 +98,7 @@ export const ownerVenueDetails = [
       "/venues/imge3.webp",
       "/venues/image1.webp",
     ],
-    schedules: [
-      { start: "07:00 AM", end: "10:00 AM", day: "Thứ 2", price: "50.000 VND" },
-      { start: "05:00 PM", end: "07:00 PM", day: "Thứ 2", price: "50.000 VND" },
-      { start: "08:00 PM", end: "09:00 PM", day: "Thứ 2", price: "100.000 VND" },
-      { start: "09:00 PM", end: "11:00 PM", day: "Thứ 2", price: "70.000 VND" },
-    ],
+    schedules: [],
   },
   {
     id: 2,
@@ -116,10 +111,6 @@ export const ownerVenueDetails = [
     mapLink:
       "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7954691533527!2d105.80085521533194!3d20.99882568601433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acb9f4c1d2c9%3A0x9d8c40e4b1f8a4d0!2zS2hvYSDEkcO0bmcgTmdo4buFbiBUcsOtLCBUaGFuaCBYdeG6rW4!5e0!3m2!1svi!2svi!4v1700000000000!5m2!1svi!2svi",
     images: ["/venues/37baef48823fbeff66b7f4c79d9769b6.jpg"],
-    schedules: [
-      { start: "06:00 AM", end: "09:00 AM", day: "Thứ 3", price: "60.000 VND" },
-      { start: "05:00 PM", end: "07:00 PM", day: "Thứ 3", price: "70.000 VND" },
-      { start: "08:00 PM", end: "10:00 PM", day: "Thứ 3", price: "90.000 VND" },
-    ],
+    schedules: [],
   },
 ];
