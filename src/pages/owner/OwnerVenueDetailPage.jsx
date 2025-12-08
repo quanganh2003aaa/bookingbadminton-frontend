@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ownerVenueDetails } from "../../services/ownerMockData";
 import "./owner-venue-detail.css";
@@ -25,40 +25,59 @@ export default function OwnerVenueDetailPage() {
     status: venue.status,
     openTime: venue.openTime,
     closeTime: venue.closeTime,
+    mapLink: venue.mapLink || "",
   });
+  const [images, setImages] = useState(venue.images || []);
+  const [errors, setErrors] = useState({});
+  const fileInputRef = useRef(null);
 
   const statusOptions = ["Hoạt động", "Ngừng hoạt động"];
-  const timeOptions = [
-    "06:00 AM",
-    "07:00 AM",
-    "08:00 AM",
-    "09:00 AM",
-    "10:00 AM",
-    "11:00 AM",
-    "12:00 PM",
-    "01:00 PM",
-    "02:00 PM",
-    "03:00 PM",
-    "04:00 PM",
-    "05:00 PM",
-    "06:00 PM",
-    "07:00 PM",
-    "08:00 PM",
-    "09:00 PM",
-    "10:00 PM",
-    "11:00 PM",
-  ];
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
+  const validate = () => {
+    const newErrors = {};
+    if (!form.name.trim()) newErrors.name = "Tên sân không được để trống";
+    if (!form.address.trim()) newErrors.address = "Địa chỉ không được để trống";
+    if (!form.contact.trim()) newErrors.contact = "Số liên hệ không được để trống";
+
+    if (!form.openTime || !form.closeTime) {
+      newErrors.time = "Giờ hoạt động không được để trống";
+    } else {
+      const [startH, startM] = form.openTime.split(":").map(Number);
+      const [endH, endM] = form.closeTime.split(":").map(Number);
+      const startMinutes = startH * 60 + startM;
+      const endMinutes = endH * 60 + endM;
+      if (Number.isNaN(startMinutes) || Number.isNaN(endMinutes)) {
+        newErrors.time = "Giờ hoạt động không hợp lệ";
+      } else if (endMinutes <= startMinutes) {
+        newErrors.time = "Giờ kết thúc phải muộn hơn giờ bắt đầu";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleToggleEdit = () => {
     if (isEditing) {
+      if (!validate()) return;
       // TODO: integrate API update when backend is ready
-      // console.log("Save venue info", form);
     }
     setIsEditing((prev) => !prev);
+  };
+
+  const handleFileClick = () => {
+    if (fileInputRef.current) fileInputRef.current.click();
+  };
+
+  const handleFilesSelected = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImages((prev) => [...prev, ...newPreviews]);
   };
 
   return (
@@ -81,13 +100,14 @@ export default function OwnerVenueDetailPage() {
         <section className="detail-card info-card">
           <div className="info-row">
             <div className="field">
-              <label>Tên sân</label>
-              <input
-                value={form.name}
-                onChange={handleChange("name")}
-                readOnly={!isEditing}
-              />
-            </div>
+            <label>Tên sân</label>
+            <input
+              value={form.name}
+              onChange={handleChange("name")}
+              readOnly={!isEditing}
+            />
+            {errors.name && <p className="field-error">{errors.name}</p>}
+          </div>
             <div className="field status-field">
               <label>Trạng thái</label>
               {isEditing ? (
@@ -116,6 +136,16 @@ export default function OwnerVenueDetailPage() {
               onChange={handleChange("address")}
               readOnly={!isEditing}
             />
+            {errors.address && <p className="field-error">{errors.address}</p>}
+          </div>
+          <div className="field">
+            <label>Link map</label>
+            <input
+              value={form.mapLink}
+              onChange={handleChange("mapLink")}
+              readOnly={!isEditing}
+              placeholder="Dán link iframe hoặc URL Google Map"
+            />
           </div>
           <div className="field">
             <label>Số liên hệ</label>
@@ -124,42 +154,28 @@ export default function OwnerVenueDetailPage() {
               onChange={handleChange("contact")}
               readOnly={!isEditing}
             />
+            {errors.contact && <p className="field-error">{errors.contact}</p>}
           </div>
           <div className="field">
             <label>Giờ hoạt động</label>
             <div className="time-range">
-              {isEditing ? (
-                <select
-                  value={form.openTime}
-                  onChange={handleChange("openTime")}
-                  className="time-select"
-                >
-                  {timeOptions.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input value={form.openTime} readOnly />
-              )}
+              <input
+                type="time"
+                value={form.openTime}
+                onChange={handleChange("openTime")}
+                disabled={!isEditing}
+                className="time-input"
+              />
               <span className="time-sep">-</span>
-              {isEditing ? (
-                <select
-                  value={form.closeTime}
-                  onChange={handleChange("closeTime")}
-                  className="time-select"
-                >
-                  {timeOptions.map((time) => (
-                    <option key={time} value={time}>
-                      {time}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <input value={form.closeTime} readOnly />
-              )}
+              <input
+                type="time"
+                value={form.closeTime}
+                onChange={handleChange("closeTime")}
+                disabled={!isEditing}
+                className="time-input"
+              />
             </div>
+            {errors.time && <p className="field-error">{errors.time}</p>}
           </div>
           <div className="info-actions">
             <button
@@ -199,18 +215,46 @@ export default function OwnerVenueDetailPage() {
         </section>
       </div>
 
+      {form.mapLink && (
+        <section className="detail-card map-card">
+          <h3>Vị trí bản đồ</h3>
+          <div className="map-frame">
+            <iframe
+              src={form.mapLink}
+              title="Bản đồ sân"
+              loading="lazy"
+              allowFullScreen
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
+        </section>
+      )}
+
       <section className="detail-card gallery-card">
-        <h3>Hình ảnh</h3>
-        <div className="gallery-grid">
-          {venue.images?.map((src, idx) => (
+        <div className="gallery-header">
+          <h3>Hình ảnh</h3>
+          <button
+            type="button"
+            className="icon-upload-btn"
+            onClick={handleFileClick}
+          >
+            +
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            multiple
+            style={{ display: "none" }}
+            onChange={handleFilesSelected}
+          />
+        </div>
+        <div className="gallery-strip">
+          {images?.map((src, idx) => (
             <div className="gallery-item" key={src + idx}>
               <img src={src} alt={`Ảnh sân ${idx + 1}`} />
             </div>
           ))}
-          <div className="gallery-item placeholder">
-            <span>+</span>
-            <small>Thêm</small>
-          </div>
         </div>
       </section>
     </div>

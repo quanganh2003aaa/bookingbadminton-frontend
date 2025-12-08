@@ -87,9 +87,11 @@ export const ownerVenueDetails = [
     name: "Sân cầu lông đại học kiến trúc Hà Nội",
     address: "Km 10, Đường Nguyễn Trãi, Quận Thanh Xuân, TP Hà Nội",
     contact: "0987654321",
-    openTime: "07:00 AM",
-    closeTime: "11:00 PM",
+    openTime: "07:00",
+    closeTime: "23:00",
     status: "Hoạt động",
+    mapLink:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7954691533527!2d105.80085521533194!3d20.99882568601433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acb9f4c1d2c9%3A0x9d8c40e4b1f8a4d0!2zS2hvYSDEkcO0bmcgTmdo4buFbiBUcsOtLCBUaGFuaCBYdeG6rW4!5e0!3m2!1svi!2svi!4v1700000000000!5m2!1svi!2svi",
     images: [
       "/venues/image1.webp",
       "/venues/image2.webp",
@@ -108,9 +110,11 @@ export const ownerVenueDetails = [
     name: "Sân Tây Hồ",
     address: "68 Võ Chí Công, Tây Hồ, Hà Nội",
     contact: "0911222333",
-    openTime: "06:00 AM",
-    closeTime: "10:00 PM",
+    openTime: "06:00",
+    closeTime: "22:00",
     status: "Hoạt động",
+    mapLink:
+      "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.7954691533527!2d105.80085521533194!3d20.99882568601433!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135acb9f4c1d2c9%3A0x9d8c40e4b1f8a4d0!2zS2hvYSDEkcO0bmcgTmdo4buFbiBUcsOtLCBUaGFuaCBYdeG6rW4!5e0!3m2!1svi!2svi!4v1700000000000!5m2!1svi!2svi",
     images: ["/venues/37baef48823fbeff66b7f4c79d9769b6.jpg"],
     schedules: [
       { start: "06:00 AM", end: "09:00 AM", day: "Thứ 3", price: "60.000 VND" },
