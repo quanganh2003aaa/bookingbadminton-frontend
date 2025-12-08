@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { ownerStatuses } from "../../services/ownerMockData";
 import "./owner-venue-info.css";
 
@@ -5,6 +6,7 @@ const statusClass = (status) =>
   status.toLowerCase().includes("ngừng") ? "status-stop" : "status-ok";
 
 export default function OwnerCourtStatusPage() {
+  const navigate = useNavigate();
   return (
     <div className="owner-venues-page">
       <div className="owner-venues-header">
@@ -32,10 +34,17 @@ export default function OwnerCourtStatusPage() {
                 <td className="cell-index">{court.id}</td>
                 <td className="cell-name">{court.name}</td>
                 <td className="cell-center">{court.todayBookings}</td>
-                <td className="cell-center">
+                <td className="cell-center status-click">
                   <span className={`status-badge ${statusClass(court.status)}`}>
                     {court.status}
                   </span>
+                  <button
+                    type="button"
+                    className="link-btn"
+                    onClick={() => navigate(`/owner/status/${court.id}`)}
+                  >
+                    Chi tiết
+                  </button>
                 </td>
               </tr>
             ))}

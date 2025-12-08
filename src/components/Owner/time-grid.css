@@ -1,0 +1,98 @@
+@import "../../styles/variables.css";
+
+.booking-legend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-size: 14px;
+}
+
+.legend-color {
+  width: 28px;
+  height: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.booking-grid {
+  overflow-x: hidden;
+}
+
+.grid-scroll {
+  width: 100%;
+  overflow-x: auto;
+  padding: 8px 8px 0;
+}
+
+.grid-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.grid-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.grid-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 8px;
+}
+
+.grid-header,
+.grid-row {
+  display: grid;
+}
+
+.grid-header {
+  background: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-border);
+  position: relative;
+  min-height: 42px;
+}
+
+.grid-row {
+  min-height: 38px;
+}
+
+.grid-court-col {
+  padding: 8px;
+  font-weight: 700;
+  border-right: 1px solid var(--color-border);
+  background: var(--color-gray-100);
+  display: flex;
+  align-items: center;
+}
+
+.grid-cell {
+  border-left: 1px solid #b5b5b5;
+  border-bottom: 1px solid #b5b5b5;
+}
+
+.time-scale {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  pointer-events: none;
+}
+
+.time-label {
+  position: absolute;
+  top: 0;
+  padding: 8px 0 12px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 12px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  color: var(--color-text-secondary);
+}

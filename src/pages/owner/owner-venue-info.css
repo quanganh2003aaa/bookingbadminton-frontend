@@ -176,6 +176,21 @@
   color: #c1272d;
 }
 
+.status-click {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: center;
+}
+
+.status-click .link-btn {
+  border: none;
+  background: transparent;
+  color: var(--color-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .detail-btn {
   width: 150px;
   height: 44px;
