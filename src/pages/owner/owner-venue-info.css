@@ -179,8 +179,9 @@
 .status-click {
   display: flex;
   align-items: center;
-  gap: 10px;
-  justify-content: center;
+  gap: 14px;
+  justify-content: flex-start;
+  min-width: 170px;
 }
 
 .status-click .link-btn {
@@ -189,6 +190,7 @@
   color: var(--color-primary);
   font-weight: 700;
   cursor: pointer;
+  white-space: nowrap;
 }
 
 .detail-btn {
