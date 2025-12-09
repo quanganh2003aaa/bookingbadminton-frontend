@@ -124,6 +124,25 @@ export default function ManagerVenueForm({
           />
             </div>
           </div>
+
+          <div className="field">
+            <label htmlFor="mapLink">
+              Link Google Map{" "}
+              <span className="helper">
+                (Dán iframe src hoặc URL chia sẻ của vị trí sân)
+              </span>
+            </label>
+            <div className="input-wrap">
+              <input
+                id="mapLink"
+                name="mapLink"
+                type="text"
+                placeholder="Ví dụ: https://www.google.com/maps/embed?pb=..."
+                value={values.mapLink}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="manager-grid-right">

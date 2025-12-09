@@ -15,7 +15,11 @@ export default function OwnerVenueInfoPage() {
           <p className="owner-subtitle">Quản lý sân</p>
           <h1 className="owner-venues-title">Thông tin sân</h1>
         </div>
-        <button type="button" className="ghost-btn">
+        <button
+          type="button"
+          className="ghost-btn"
+          onClick={() => navigate("/manager-register?step=2&auto=1")}
+        >
           + Thêm sân
         </button>
       </div>

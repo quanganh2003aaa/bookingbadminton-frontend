@@ -1,6 +1,5 @@
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "../layouts/app/AppLayout";
-import AppLayoutAdmin from "../layouts/admin/AppLayoutAdmin";
 import AuthLayout from "../layouts/auth/AuthLayout";
 import OwnerLayout from "../layouts/owner/OwnerLayout";
 import BookingPage from "../pages/public/BookingPage";
@@ -13,6 +12,9 @@ import OwnerLoginPage from "../pages/auth/OwnerLoginPage";
 import PayingPage from "../pages/public/PayingPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import UserInfoPage from "../pages/public/UserInfoPage";
+import AdminSystemPage from "../pages/admin/AdminSystemPage";
+import AdminOwnersPage from "../pages/admin/AdminOwnersPage";
+import AdminRegistrationsPage from "../pages/admin/AdminRegistrationsPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 import OwnerVenueInfoPage from "../pages/owner/OwnerVenueInfoPage";
 import OwnerCourtStatusPage from "../pages/owner/OwnerCourtStatusPage";
@@ -20,6 +22,13 @@ import OwnerRevenuePage from "../pages/owner/OwnerRevenuePage";
 import OwnerAccountPage from "../pages/owner/OwnerAccountPage";
 import OwnerVenueDetailPage from "../pages/owner/OwnerVenueDetailPage";
 import OwnerCourtStatusDetailPage from "../pages/owner/OwnerCourtStatusDetailPage";
+
+const adminNavItems = [
+  { to: "/admin", label: "Quản lý người dùng", end: true },
+  { to: "/admin/owners", label: "Quản lý chủ sân" },
+  { to: "/admin/registrations", label: "Quản lý đăng ký" },
+  { to: "/admin/reports", label: "Báo cáo" },
+];
 
 const authRoutes = [
   { path: "/login", element: <LoginPage /> },
@@ -58,8 +67,14 @@ const appRoutes = [
   },
   {
     path: "/admin",
-    element: <AppLayoutAdmin />,
-    children: [{ index: true, element: <HomePageAdmin /> }],
+    element: <OwnerLayout navItems={adminNavItems} />,
+    children: [
+      { index: true, element: <AdminSystemPage /> },
+      { path: "users", element: <AdminSystemPage /> },
+      { path: "owners", element: <AdminOwnersPage /> },
+      { path: "registrations", element: <AdminRegistrationsPage /> },
+      { path: "reports", element: <HomePageAdmin /> },
+    ],
   },
 ];
 
