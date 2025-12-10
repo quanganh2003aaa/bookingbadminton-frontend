@@ -15,6 +15,7 @@ import UserInfoPage from "../pages/public/UserInfoPage";
 import AdminSystemPage from "../pages/admin/AdminSystemPage";
 import AdminOwnersPage from "../pages/admin/AdminOwnersPage";
 import AdminRegistrationsPage from "../pages/admin/AdminRegistrationsPage";
+import AdminReportsPage from "../pages/admin/AdminReportsPage";
 import HomePageAdmin from "../pages/admin/HomePageAdmin";
 import OwnerVenueInfoPage from "../pages/owner/OwnerVenueInfoPage";
 import OwnerCourtStatusPage from "../pages/owner/OwnerCourtStatusPage";
@@ -73,7 +74,7 @@ const appRoutes = [
       { path: "users", element: <AdminSystemPage /> },
       { path: "owners", element: <AdminOwnersPage /> },
       { path: "registrations", element: <AdminRegistrationsPage /> },
-      { path: "reports", element: <HomePageAdmin /> },
+      { path: "reports", element: <AdminReportsPage /> },
     ],
   },
 ];

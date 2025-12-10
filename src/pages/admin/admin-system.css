@@ -354,6 +354,226 @@
   border-color: #1b7c2b;
 }
 
+.reports-page .report-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: flex-end;
+}
+
+.reports-page .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 170px;
+}
+
+.reports-page .filter-group label {
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.reports-page .filter-group input,
+.reports-page .filter-group select {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  padding: 0 10px;
+}
+
+.reports-page .filter-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+}
+
+.report-card {
+  background: #fff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.report-card-title {
+  font-weight: 800;
+  color: var(--color-text-secondary);
+}
+
+.report-card-value {
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.report-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--color-text-secondary);
+  font-weight: 700;
+}
+
+.delta {
+  font-weight: 800;
+}
+
+.delta.positive {
+  color: #1b7c2b;
+}
+
+.delta.negative {
+  color: #b0392e;
+}
+
+.report-panels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 12px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.chart-title {
+  font-weight: 800;
+}
+
+.chart-subtitle {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.chart-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #e8f2ff;
+  border: 1px solid #d0def5;
+  font-weight: 800;
+  color: #1b4f9c;
+}
+
+.chart-badge.neutral {
+  background: #f6f8fb;
+  border-color: var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+
+.breakdown-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.breakdown-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #f8fafd;
+  border: 1px solid var(--color-border-light);
+}
+
+.breakdown-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+}
+
+.breakdown-value {
+  font-weight: 900;
+}
+
+.dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.dot.success {
+  background: #1b7c2b;
+}
+
+.dot.pending {
+  background: #d98a00;
+}
+
+.dot.danger {
+  background: #c0392b;
+}
+
+.payout-list {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.payout-head {
+  font-weight: 900;
+}
+
+.payout-row {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr auto;
+  gap: 10px;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  background: #fff;
+}
+
+.payout-id {
+  font-weight: 800;
+}
+
+.payout-meta {
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.payout-amount {
+  font-weight: 900;
+}
+
+.payout-status {
+  font-weight: 800;
+  color: #1b4f9c;
+}
+
+.table-title {
+  font-weight: 900;
+}
+
+.table-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.report-table .admin-table-row {
+  grid-template-columns: 0.5fr 2fr 1.6fr 1.4fr 1fr;
+}
+
 @media (max-width: 900px) {
   .admin-table-row {
     grid-template-columns: 0.6fr 1.6fr 1.4fr 2fr 1fr;
@@ -393,5 +613,9 @@
 
   .registration-table .admin-table-row {
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  .payout-row {
+    grid-template-columns: 1fr;
   }
 }
