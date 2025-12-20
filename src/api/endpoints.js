@@ -15,4 +15,7 @@ export const ENDPOINTS = {
   adminUsers: `${API_BASE}/users/admin`,
   accountLock: (id) => `${API_BASE}/accounts/${encodeURIComponent(id)}/lock`,
   accountUnlock: (id) => `${API_BASE}/accounts/${encodeURIComponent(id)}/unlock`,
+  adminFields: `${API_BASE}/fields/admin`,
+  adminFieldDetail: (id) =>
+    `${API_BASE}/fields/${encodeURIComponent(id)}/detail`,
 };
