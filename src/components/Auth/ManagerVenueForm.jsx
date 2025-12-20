@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { FiCheck } from "react-icons/fi";
 
 export default function ManagerVenueForm({
@@ -9,8 +9,10 @@ export default function ManagerVenueForm({
   onChange,
   uploads,
   onUploadsChange,
+  loading = false,
+  error = "",
 }) {
-  const fileInputRef = React.useRef(null);
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,9 +24,7 @@ export default function ManagerVenueForm({
     onNext && onNext(values);
   };
 
-  const handlePickFiles = () => {
-    if (fileInputRef.current) fileInputRef.current.click();
-  };
+  const handlePickFiles = () => fileInputRef.current?.click();
 
   const handleFiles = (e) => {
     const files = Array.from(e.target.files || []);
@@ -36,7 +36,7 @@ export default function ManagerVenueForm({
           .filter((f) => !existingNames.has(f.name))
           .map((f) => ({
             name: f.name,
-            status: "Đăng tải xong",
+            status: "Đã tải xong",
           }));
         return [...prev, ...mapped];
       });
@@ -51,9 +51,7 @@ export default function ManagerVenueForm({
             activeStep === 1 ? "active" : activeStep > 1 ? "completed" : ""
           }`}
         >
-          <span className={`step-number ${activeStep !== 1 ? "muted" : ""}`}>
-            1
-          </span>
+          <span className={`step-number ${activeStep !== 1 ? "muted" : ""}`}>1</span>
           <span className="step-line" />
         </div>
         <div
@@ -61,15 +59,11 @@ export default function ManagerVenueForm({
             activeStep === 2 ? "active" : activeStep > 2 ? "completed" : ""
           }`}
         >
-          <span className={`step-number ${activeStep !== 2 ? "muted" : ""}`}>
-            2
-          </span>
+          <span className={`step-number ${activeStep !== 2 ? "muted" : ""}`}>2</span>
           <span className="step-line" />
         </div>
         <div className={`step ${activeStep === 3 ? "active" : ""}`}>
-          <span className={`step-number ${activeStep !== 3 ? "muted" : ""}`}>
-            3
-          </span>
+          <span className={`step-number ${activeStep !== 3 ? "muted" : ""}`}>3</span>
         </div>
       </div>
 
@@ -78,16 +72,16 @@ export default function ManagerVenueForm({
           <div className="field">
             <label htmlFor="name">Tên sân</label>
             <div className="input-wrap">
-          <input
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Nhập tên sân của bạn"
-            value={values.name}
-            maxLength={255}
-            onChange={handleChange}
-            required
-          />
+              <input
+                id="name"
+                name="name"
+                type="text"
+                placeholder="Nhập tên sân của bạn"
+                value={values.name}
+                maxLength={255}
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
 
@@ -109,28 +103,26 @@ export default function ManagerVenueForm({
           <div className="field">
             <label htmlFor="phone">Số điện thoại liên hệ</label>
             <div className="input-wrap">
-          <input
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="Nhập số điện thoại liên hệ của sân"
-            value={values.phone}
-            pattern="(0|\\+84)[0-9]{9}"
-            maxLength={12}
-            inputMode="tel"
-            title="Số điện thoại Việt Nam bắt đầu bằng 0 hoặc +84, gồm 10 chữ số"
-            onChange={handleChange}
-            required
-          />
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="Nhập số điện thoại liên hệ của sân"
+                value={values.phone}
+                pattern="(0|\\+84)[0-9]{9}"
+                maxLength={12}
+                inputMode="tel"
+                title="Số điện thoại Việt Nam bắt đầu bằng 0 hoặc +84, gồm 10 chữ số"
+                onChange={handleChange}
+                required
+              />
             </div>
           </div>
 
           <div className="field">
             <label htmlFor="mapLink">
               Link Google Map{" "}
-              <span className="helper">
-                (Dán iframe src hoặc URL chia sẻ của vị trí sân)
-              </span>
+              <span className="helper">(iframe src hoặc URL chia sẻ của vị trí sân)</span>
             </label>
             <div className="input-wrap">
               <input
@@ -155,7 +147,7 @@ export default function ManagerVenueForm({
               onClick={handlePickFiles}
               onKeyDown={(e) => e.key === "Enter" && handlePickFiles()}
             >
-              <span className="upload-icon">↥</span>
+              <span className="upload-icon">⬆</span>
               <span className="upload-text">Click to upload</span>
             </div>
             <input
@@ -181,6 +173,8 @@ export default function ManagerVenueForm({
         </div>
       </div>
 
+      {error && <p className="form-error">{error}</p>}
+
       <div className="manager-actions">
         <button
           type="button"
@@ -192,8 +186,8 @@ export default function ManagerVenueForm({
         >
           Quay lại
         </button>
-        <button type="submit" className="btn primary full">
-          Bước tiếp theo
+        <button type="submit" className="btn primary full" disabled={loading}>
+          {loading ? "Đang gửi passcode..." : "Bước tiếp theo"}
         </button>
       </div>
 

@@ -60,6 +60,25 @@
   gap: 18px;
 }
 
+.form-alert {
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+
+.form-alert.error {
+  background: #fde8e8;
+  color: #c0392b;
+  border: 1px solid #f5c2c2;
+}
+
+.form-alert.success {
+  background: #e1f5e8;
+  color: #1a7a2e;
+  border: 1px solid #9fd7b3;
+}
+
 .field {
   display: flex;
   flex-direction: column;

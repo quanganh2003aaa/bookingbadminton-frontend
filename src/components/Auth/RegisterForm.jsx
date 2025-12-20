@@ -1,8 +1,11 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
+import { ENDPOINTS } from "../../api/endpoints";
 
 export default function RegisterForm() {
+  const navigate = useNavigate();
   const [show, setShow] = useState({ password: false, confirm: false });
   const [values, setValues] = useState({
     fullName: "",
@@ -11,9 +14,14 @@ export default function RegisterForm() {
     password: "",
     confirmPassword: "",
   });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setError("");
+    setSuccess("");
     setValues((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -21,13 +29,90 @@ export default function RegisterForm() {
     setShow((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Register submit", values);
+    setError("");
+    setSuccess("");
+
+    // trims
+    const trimmedName = values.fullName.trim();
+    const trimmedEmail = values.email.trim();
+
+    // validations
+    if (trimmedName.length < 1 || trimmedName.length > 50) {
+      setError("Tên cần từ 1-50 ký tự.");
+      return;
+    }
+
+    const phoneRegex = /^0[0-9]{9}$/;
+    if (!phoneRegex.test(values.phone)) {
+      setError("Số điện thoại phải bắt đầu bằng 0 và đủ 10 số.");
+      return;
+    }
+
+    const emailRegex = /^[\w.-]+@([\w-]+\.)+[\w-]{2,}$/;
+    const emailNoSpecial = /^[A-Za-z0-9@._-]+$/;
+    if (
+      !emailRegex.test(trimmedEmail) ||
+      trimmedEmail.length > 50 ||
+      !emailNoSpecial.test(trimmedEmail)
+    ) {
+      setError("Gmail không hợp lệ hoặc vượt quá 50 ký tự.");
+      return;
+    }
+
+    const passwordRegex = /^[A-Za-z0-9]{6,16}$/;
+    if (!passwordRegex.test(values.password)) {
+      setError("Mật khẩu cần 6-16 ký tự, không chứa khoảng trắng/ký tự đặc biệt.");
+      return;
+    }
+
+    if (values.password !== values.confirmPassword) {
+      setError("Mật khẩu và nhập lại mật khẩu không khớp.");
+      return;
+    }
+
+    const payload = {
+      account: {
+        password: values.password,
+        gmail: trimmedEmail,
+        msisdn: values.phone,
+      },
+      name: trimmedName,
+    };
+
+    setSubmitting(true);
+    try {
+      const res = await fetch(ENDPOINTS.registerUser, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      }
+
+      setSuccess("Đăng ký thành công! Đang chuyển sang trang đăng nhập...");
+      setTimeout(() => navigate("/login"), 800);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
     <form className="register-form" onSubmit={handleSubmit}>
+      {(error || success) && (
+        <div className={`form-alert ${error ? "error" : "success"}`}>
+          {error || success}
+        </div>
+      )}
+
       <div className="field">
         <label htmlFor="fullName">Tên đầy đủ</label>
         <div className="input-wrap">
@@ -112,20 +197,18 @@ export default function RegisterForm() {
             type="button"
             className="eye-btn"
             onClick={() => toggle("confirm")}
-            aria-label={
-              show.confirm ? "Ẩn mật khẩu nhập lại" : "Hiện mật khẩu nhập lại"
-            }
+            aria-label={show.confirm ? "Ẩn mật khẩu nhập lại" : "Hiện mật khẩu nhập lại"}
           >
             {show.confirm ? <FiEyeOff /> : <FiEye />}
           </button>
         </div>
       </div>
 
-      <button type="submit" className="btn primary">
-        Đăng ký
+      <button type="submit" className="btn primary" disabled={submitting}>
+        {submitting ? "Đang đăng ký..." : "Đăng ký"}
       </button>
 
-      <button type="button" className="btn google">
+      <button type="button" className="btn google" disabled={submitting}>
         <FcGoogle aria-hidden="true" size={22} />
         <span>Tiếp tục với Google</span>
       </button>

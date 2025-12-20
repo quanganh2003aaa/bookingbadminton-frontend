@@ -1,70 +1,108 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./admin-system.css";
+import { ENDPOINTS } from "../../api/endpoints";
 
-const mockUsers = [
-  { id: 1, name: "Phạm Văn A", phone: "0987654321", email: "user1@mail.com", locked: false },
-  { id: 2, name: "Nguyễn Thị B", phone: "0911222333", email: "user2@mail.com", locked: true },
-  { id: 3, name: "Trần Văn C", phone: "0933444555", email: "user3@mail.com", locked: false },
-  { id: 4, name: "Lê Văn D", phone: "0977333444", email: "user4@mail.com", locked: true },
-  { id: 5, name: "Phạm Văn E", phone: "0909000005", email: "user5@mail.com", locked: false },
-  { id: 6, name: "Nguyễn Thị F", phone: "0909000006", email: "user6@mail.com", locked: false },
-  { id: 7, name: "Trần Văn G", phone: "0909000007", email: "user7@mail.com", locked: true },
-  { id: 8, name: "Lê Văn H", phone: "0909000008", email: "user8@mail.com", locked: false },
-  { id: 9, name: "Phạm Văn I", phone: "0909000009", email: "user9@mail.com", locked: false },
-  { id: 10, name: "Nguyễn Thị J", phone: "0909000010", email: "user10@mail.com", locked: false },
-  { id: 11, name: "Trần Văn K", phone: "0909000011", email: "user11@mail.com", locked: false },
-  { id: 12, name: "Lê Văn L", phone: "0909000012", email: "user12@mail.com", locked: true },
-  { id: 13, name: "Phạm Văn M", phone: "0909000013", email: "user13@mail.com", locked: false },
-  { id: 14, name: "Nguyễn Thị N", phone: "0909000014", email: "user14@mail.com", locked: false },
-  { id: 15, name: "Trần Văn O", phone: "0909000015", email: "user15@mail.com", locked: true },
-  { id: 16, name: "Lê Văn P", phone: "0909000016", email: "user16@mail.com", locked: false },
-  { id: 17, name: "Phạm Văn Q", phone: "0909000017", email: "user17@mail.com", locked: false },
-  { id: 18, name: "Nguyễn Thị R", phone: "0909000018", email: "user18@mail.com", locked: false },
-  { id: 19, name: "Trần Văn S", phone: "0909000019", email: "user19@mail.com", locked: true },
-  { id: 20, name: "Lê Văn T", phone: "0909000020", email: "user20@mail.com", locked: false },
-];
+const pageSize = 10;
 
 export default function AdminSystemPage() {
   const [search, setSearch] = useState("");
-  const [users, setUsers] = useState(mockUsers);
+  const [lockedFilter, setLockedFilter] = useState("all");
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [total, setTotal] = useState(0);
+  const [actionLoadingId, setActionLoadingId] = useState(null);
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    if (!term) return users;
-    return users.filter(
-      (u) =>
-        u.name.toLowerCase().includes(term) ||
-        u.phone.includes(term) ||
-        u.email.toLowerCase().includes(term)
-    );
-  }, [search, users]);
+  const totalPages = Math.max(1, Math.ceil((total || users.length) / pageSize));
+  const currentPage = Math.max(1, Math.min(page, totalPages));
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
-  const currentPage = Math.min(page, totalPages);
-  const paginated = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    return filtered.slice(start, start + pageSize);
-  }, [filtered, currentPage, pageSize]);
+  const fetchUsers = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams();
+      if (search.trim()) params.append("search", search.trim());
+      params.append("page", String(Math.max(currentPage - 1, 0)));
+      params.append("size", String(pageSize));
+      if (lockedFilter !== "all") params.append("locked", lockedFilter === "locked");
+      const query = params.toString();
+      const url = `${ENDPOINTS.adminUsers}${query ? `?${query}` : ""}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Không thể tải danh sách người dùng.");
+      const data = await res.json().catch(() => ({}));
+      const payload = data.result || {};
+      const list = Array.isArray(payload.content) ? payload.content : Array.isArray(payload) ? payload : [];
+      setUsers(
+        list.map((item, index) => ({
+          id: item.id || item.accountId || `row-${index}`,
+          name: item.name || "Chưa cập nhật",
+          phone: item.msisdn || "",
+          email: item.gmail || item.email || "",
+          locked: Boolean(item.deletedAt),
+        }))
+      );
+      const apiTotal =
+        payload.totalElements ??
+        data.total ??
+        data.totalElements ??
+        data.totalItems ??
+        data?.page?.totalElements ??
+        list.length;
+      setTotal(apiTotal);
+      const apiPageNumber = payload.number;
+      if (typeof apiPageNumber === "number" && apiPageNumber + 1 !== currentPage) {
+        setPage(apiPageNumber + 1);
+      }
+    } catch (err) {
+      setError(err.message || "Có lỗi xảy ra.");
+      setUsers([]);
+      setTotal(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, lockedFilter, currentPage]);
+
+  const paginated = useMemo(() => users, [users]);
 
   const pageNumbers = useMemo(
     () => Array.from({ length: totalPages }, (_, i) => i + 1),
     [totalPages]
   );
 
-  const handleToggleLock = (user) => {
+  const handleToggleLock = async (user) => {
+    if (!user) return;
     const action = user.locked ? "mở khóa" : "khóa";
-    const ok = window.confirm(
-      `Bạn có chắc muốn ${action} người dùng ${user.name}?`
-    );
-    if (ok) {
+    const ok = window.confirm(`Bạn có chắc muốn ${action} người dùng ${user.name}?`);
+    if (!ok) return;
+    setActionLoadingId(user.id);
+    try {
+      const url = user.locked
+        ? ENDPOINTS.accountUnlock(user.id)
+        : ENDPOINTS.accountLock(user.id);
+      const res = await fetch(url, { method: "POST" });
+      if (!res.ok) {
+        throw new Error(user.locked ? "Không thể mở khóa tài khoản." : "Không thể khóa tài khoản.");
+      }
       setUsers((prev) =>
         prev.map((u) =>
-          u.id === user.id ? { ...u, locked: !u.locked } : u
+          u.id === user.id
+            ? {
+                ...u,
+                locked: !u.locked,
+              }
+            : u
         )
       );
-      // TODO: call API toggle lock/unlock
+    } catch (err) {
+      alert(err.message || "Có lỗi xảy ra khi cập nhật trạng thái.");
+    } finally {
+      setActionLoadingId(null);
     }
   };
 
@@ -75,6 +113,11 @@ export default function AdminSystemPage() {
 
   const handleChangePage = (nextPage) => {
     setPage(Math.min(Math.max(nextPage, 1), totalPages));
+  };
+
+  const handleLockedChange = (e) => {
+    setLockedFilter(e.target.value);
+    setPage(1);
   };
 
   return (
@@ -91,7 +134,16 @@ export default function AdminSystemPage() {
               onChange={handleSearchChange}
             />
           </div>
+          <div className="table-filters">
+            <select value={lockedFilter} onChange={handleLockedChange}>
+              <option value="all">Tất cả</option>
+              <option value="locked">Đã khóa</option>
+              <option value="unlocked">Đang mở</option>
+            </select>
+          </div>
         </div>
+
+        {error && <div className="form-error inline-error">{error}</div>}
 
         <div className="admin-table">
           <div className="admin-table-row admin-table-head">
@@ -101,35 +153,44 @@ export default function AdminSystemPage() {
             <span>Gmail</span>
             <span>Thao tác</span>
           </div>
-          {paginated.length === 0 && (
+          {loading && (
+            <div className="admin-table-row empty-row">
+              <span>Đang tải...</span>
+            </div>
+          )}
+          {!loading && paginated.length === 0 && (
             <div className="admin-table-row empty-row">
               <span>Không tìm thấy người dùng</span>
             </div>
           )}
-          {paginated.map((u, idx) => (
-            <div className="admin-table-row" key={u.id}>
-              <span className="cell-bold">
-                {(currentPage - 1) * pageSize + idx + 1}
-              </span>
-              <span>{u.name}</span>
-              <span>*****{u.phone.slice(-3)}</span>
-              <span>{u.email}</span>
-              <span>
-                <button
-                  type="button"
-                  className={`user-action ${u.locked ? "success" : "danger"}`}
-                  onClick={() => handleToggleLock(u)}
-                >
-                  {u.locked ? "Mở khóa" : "Khóa"}
-                </button>
-              </span>
-            </div>
-          ))}
+          {!loading &&
+            paginated.map((u, idx) => (
+              <div className="admin-table-row" key={u.id || idx}>
+                <span className="cell-bold">{(currentPage - 1) * pageSize + idx + 1}</span>
+                <span>{u.name}</span>
+                <span>{u.phone ? `*****${u.phone.slice(-3)}` : "Chưa cập nhật"}</span>
+                <span>{u.email || "Chưa cập nhật"}</span>
+                <span>
+                  <button
+                    type="button"
+                    className={`user-action ${u.locked ? "success" : "danger"}`}
+                    onClick={() => handleToggleLock(u)}
+                    disabled={actionLoadingId === u.id}
+                  >
+                    {actionLoadingId === u.id
+                      ? "Đang xử lý..."
+                      : u.locked
+                      ? "Mở khóa"
+                      : "Khóa"}
+                  </button>
+                </span>
+              </div>
+            ))}
         </div>
 
         <div className="table-pagination">
           <div className="page-info">
-            Trang {currentPage}/{totalPages} · {filtered.length} người dùng
+            Trang {currentPage}/{totalPages} • {total || users.length} người dùng
           </div>
           <div className="page-buttons">
             <button

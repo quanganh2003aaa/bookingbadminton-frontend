@@ -1,268 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "./admin-system.css";
-
-const mockRegistrations = [
-  {
-    id: 1,
-    name: "Phạm Văn An",
-    phone: "0987654321",
-    email: "an.manager@mail.com",
-    venue: "Sân 12 Khuất Duy Tiến",
-    venueAddress: "12 Khuất Duy Tiến, Thanh Xuân, Hà Nội",
-    venueContact: "0987000001",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=12+khuat+duy+tien",
-    status: "pending",
-  },
-  {
-    id: 2,
-    name: "Nguyễn Thị Bình",
-    phone: "0911222333",
-    email: "binh.manager@mail.com",
-    venue: "Sân Cầu Giấy",
-    venueAddress: "15 Trần Quốc Hoàn, Cầu Giấy, Hà Nội",
-    venueContact: "0911222333",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=tran+quoc+hoan+ha+noi",
-    status: "approved",
-  },
-  {
-    id: 3,
-    name: "Trần Minh Châu",
-    phone: "0933444555",
-    email: "chau.manager@mail.com",
-    venue: "Sân Tây Hồ",
-    venueAddress: "88 Lạc Long Quân, Tây Hồ, Hà Nội",
-    venueContact: "0933444555",
-    openTime: "05:30",
-    closeTime: "22:30",
-    mapLink: "https://maps.google.com/?q=lac+long+quan+ha+noi",
-    status: "rejected",
-  },
-  {
-    id: 4,
-    name: "Lê Hoàng Dũng",
-    phone: "0977333444",
-    email: "dung.manager@mail.com",
-    venue: "Sân Long Biên",
-    venueAddress: "25 Long Biên, Hà Nội",
-    venueContact: "0977333444",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=long+bien+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 5,
-    name: "Võ Quang Em",
-    phone: "0909000005",
-    email: "em.manager@mail.com",
-    venue: "Sân Gia Lâm",
-    venueAddress: "55 Ngô Xuân Quảng, Gia Lâm, Hà Nội",
-    venueContact: "0909000005",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=ngo+xuan+quang+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 6,
-    name: "Đặng Thị Phương",
-    phone: "0909000006",
-    email: "phuong.manager@mail.com",
-    venue: "Sân Hoàng Mai",
-    venueAddress: "120 Giải Phóng, Hoàng Mai, Hà Nội",
-    venueContact: "0909000006",
-    openTime: "05:30",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=giai+phong+ha+noi",
-    status: "approved",
-  },
-  {
-    id: 7,
-    name: "Bùi Minh Giang",
-    phone: "0909000007",
-    email: "giang.manager@mail.com",
-    venue: "Sân Thanh Xuân",
-    venueAddress: "99 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-    venueContact: "0909000007",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=nguyen+trai+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 8,
-    name: "Đỗ Thùy Hạnh",
-    phone: "0909000008",
-    email: "hanh.manager@mail.com",
-    venue: "Sân Ba Đình",
-    venueAddress: "45 Đội Cấn, Ba Đình, Hà Nội",
-    venueContact: "0909000008",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=doi+can+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 9,
-    name: "Hoàng Gia Khang",
-    phone: "0909000009",
-    email: "khang.manager@mail.com",
-    venue: "Sân Đống Đa",
-    venueAddress: "26 Tôn Đức Thắng, Đống Đa, Hà Nội",
-    venueContact: "0909000009",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=ton+duc+thang+ha+noi",
-    status: "rejected",
-  },
-  {
-    id: 10,
-    name: "Phan Thị Lan",
-    phone: "0909000010",
-    email: "lan.manager@mail.com",
-    venue: "Sân Cầu Diễn",
-    venueAddress: "12 Hồ Tùng Mậu, Nam Từ Liêm, Hà Nội",
-    venueContact: "0909000010",
-    openTime: "06:00",
-    closeTime: "22:30",
-    mapLink: "https://maps.google.com/?q=ho+tung+mau+ha+noi",
-    status: "approved",
-  },
-  {
-    id: 11,
-    name: "Trịnh Tuấn Minh",
-    phone: "0909000011",
-    email: "minh.manager@mail.com",
-    venue: "Sân Trần Phú",
-    venueAddress: "60 Trần Phú, Hà Đông, Hà Nội",
-    venueContact: "0909000011",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=tran+phu+ha+dong",
-    status: "pending",
-  },
-  {
-    id: 12,
-    name: "Tạ Quốc Nam",
-    phone: "0909000012",
-    email: "nam.manager@mail.com",
-    venue: "Sân Nguyễn Trãi",
-    venueAddress: "110 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-    venueContact: "0909000012",
-    openTime: "05:30",
-    closeTime: "22:30",
-    mapLink: "https://maps.google.com/?q=110+nguyen+trai+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 13,
-    name: "Huỳnh Hải Oanh",
-    phone: "0909000013",
-    email: "oanh.manager@mail.com",
-    venue: "Sân Yên Hòa",
-    venueAddress: "8 Trung Kính, Cầu Giấy, Hà Nội",
-    venueContact: "0909000013",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=trung+kinh+ha+noi",
-    status: "approved",
-  },
-  {
-    id: 14,
-    name: "Mai Văn Phú",
-    phone: "0909000014",
-    email: "phu.manager@mail.com",
-    venue: "Sân Mỹ Đình",
-    venueAddress: "Mễ Trì, Nam Từ Liêm, Hà Nội",
-    venueContact: "0909000014",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=me+tri+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 15,
-    name: "Vũ Minh Quân",
-    phone: "0909000015",
-    email: "quan.manager@mail.com",
-    venue: "Sân Hà Đông",
-    venueAddress: "55 Quang Trung, Hà Đông, Hà Nội",
-    venueContact: "0909000015",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=quang+trung+ha+dong",
-    status: "pending",
-  },
-  {
-    id: 16,
-    name: "Ngô Đức Sơn",
-    phone: "0909000016",
-    email: "son.manager@mail.com",
-    venue: "Sân Láng Hạ",
-    venueAddress: "120 Láng Hạ, Đống Đa, Hà Nội",
-    venueContact: "0909000016",
-    openTime: "06:00",
-    closeTime: "22:30",
-    mapLink: "https://maps.google.com/?q=lang+ha+ha+noi",
-    status: "approved",
-  },
-  {
-    id: 17,
-    name: "Trần Thị Trang",
-    phone: "0909000017",
-    email: "trang.manager@mail.com",
-    venue: "Sân Phạm Ngọc Thạch",
-    venueAddress: "80 Phạm Ngọc Thạch, Đống Đa, Hà Nội",
-    venueContact: "0909000017",
-    openTime: "06:00",
-    closeTime: "23:00",
-    mapLink: "https://maps.google.com/?q=pham+ngoc+thach+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 18,
-    name: "Phạm Thanh Uyên",
-    phone: "0909000018",
-    email: "uyen.manager@mail.com",
-    venue: "Sân Nguyễn Chí Thanh",
-    venueAddress: "18 Nguyễn Chí Thanh, Đống Đa, Hà Nội",
-    venueContact: "0909000018",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=nguyen+chi+thanh+ha+noi",
-    status: "rejected",
-  },
-  {
-    id: 19,
-    name: "Lưu Lan Vân",
-    phone: "0909000019",
-    email: "van.manager@mail.com",
-    venue: "Sân Lạc Trung",
-    venueAddress: "22 Lạc Trung, Hai Bà Trưng, Hà Nội",
-    venueContact: "0909000019",
-    openTime: "05:30",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=lac+trung+ha+noi",
-    status: "pending",
-  },
-  {
-    id: 20,
-    name: "Nguyễn Anh Xuân",
-    phone: "0909000020",
-    email: "xuan.manager@mail.com",
-    venue: "Sân Hoàn Kiếm",
-    venueAddress: "Hàng Bài, Hoàn Kiếm, Hà Nội",
-    venueContact: "0909000020",
-    openTime: "06:00",
-    closeTime: "22:00",
-    mapLink: "https://maps.google.com/?q=hang+bai+ha+noi",
-    status: "pending",
-  },
-];
+import { ENDPOINTS } from "../../api/endpoints";
 
 const statusLabel = {
   pending: "Chờ duyệt",
@@ -270,26 +8,129 @@ const statusLabel = {
   rejected: "Từ chối",
 };
 
+const apiStatusMap = {
+  all: "",
+  pending: "INACCEPT",
+  approved: "ACCEPT",
+  rejected: "REJECT",
+};
+
+const mapApiStatus = (status) => {
+  const upper = (status || "").toUpperCase();
+  if (upper === "ACCEPT") return { uiStatus: "approved", statusCode: "ACCEPT" };
+  if (upper === "REJECT") return { uiStatus: "rejected", statusCode: "REJECT" };
+  return { uiStatus: "pending", statusCode: "INACCEPT" };
+};
+
+const formatDateTime = (value) => {
+  if (!value) return "Chưa cập nhật";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat("vi-VN", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+};
+
 export default function AdminRegistrationsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [registrations, setRegistrations] = useState(mockRegistrations);
+  const [registrations, setRegistrations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [detail, setDetail] = useState(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState(null);
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
   const pageSize = 10;
 
-  const filtered = useMemo(() => {
-    const term = search.trim().toLowerCase();
-    return registrations.filter((r) => {
-      const matchesTerm =
-        !term ||
-        r.name.toLowerCase().includes(term) ||
-        r.email.toLowerCase().includes(term) ||
-        r.venue.toLowerCase().includes(term);
-      const matchesStatus = statusFilter === "all" || r.status === statusFilter;
-      return matchesTerm && matchesStatus;
-    });
-  }, [search, statusFilter, registrations]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const fetchRegistrations = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams();
+        const trimmedSearch = search.trim();
+        if (trimmedSearch) params.append("search", trimmedSearch);
+        const apiStatus = apiStatusMap[statusFilter];
+        if (apiStatus) params.append("status", apiStatus);
+
+        const query = params.toString();
+        const url = `${ENDPOINTS.adminRegisterOwners}${query ? `?${query}` : ""}`;
+        const res = await fetch(url, { signal: controller.signal });
+        if (!res.ok) throw new Error("Không thể tải danh sách đơn đăng ký.");
+
+        const data = await res.json().catch(() => ({}));
+        const list = Array.isArray(data.result) ? data.result : [];
+        setRegistrations(
+          list.map((item, index) => {
+            const { uiStatus, statusCode } = mapApiStatus(item.status);
+            return {
+              id: item.id || item.accountId || item.gmail || item.name || `row-${index}`,
+              name: item.name || "",
+              email: item.gmail || item.email || "",
+              status: uiStatus,
+              statusCode,
+            };
+          })
+        );
+        setPage(1);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setError(err.message || "Có lỗi xảy ra.");
+        setRegistrations([]);
+      } finally {
+        if (!controller.signal.aborted) setLoading(false);
+      }
+    };
+
+    fetchRegistrations();
+    return () => controller.abort();
+  }, [search, statusFilter]);
+
+  const fetchDetail = async (id) => {
+    if (!id) return;
+    setDetail(null);
+    setDetailError("");
+    setDetailLoading(true);
+    try {
+      const url =
+        typeof ENDPOINTS.adminRegisterOwnerDetail === "function"
+          ? ENDPOINTS.adminRegisterOwnerDetail(id)
+          : `${ENDPOINTS.adminRegisterOwners}/${id}/detail`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Không thể tải chi tiết đơn đăng ký.");
+      const data = await res.json().catch(() => ({}));
+      const item = data.result || {};
+      const { uiStatus, statusCode } = mapApiStatus(item.status);
+      setDetail({
+        id: item.id || id,
+        accountId: item.accountId || "",
+        name: item.name || "",
+        email: item.gmail || item.email || "",
+        phone: item.mobileContact || "",
+        address: item.address || "",
+        linkMap: item.linkMap || "",
+        status: uiStatus,
+        statusCode,
+        createdAt: item.createdAt || "",
+        updatedAt: item.updatedAt || "",
+      });
+    } catch (err) {
+      setDetailError(err.message || "Có lỗi xảy ra khi tải chi tiết.");
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
+  const filtered = useMemo(() => registrations, [registrations]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -304,20 +145,50 @@ export default function AdminRegistrationsPage() {
     [totalPages]
   );
 
-  const updateStatus = (item, nextStatus) => {
-    if (item.status === nextStatus) return;
+  const updateStatus = async (item, nextStatus) => {
+    if (!item || item.status === nextStatus) return;
     const actionText =
       nextStatus === "approved" ? "duyệt đơn này" : "từ chối đơn này";
     const ok = window.confirm(
-      `Bạn có chắc muốn ${actionText} của ${item.name} cho ${item.venue}?`
+      `Bạn có chắc muốn ${actionText} của ${item.name || "người này"}?`
     );
     if (!ok) return;
-    setRegistrations((prev) =>
-      prev.map((r) =>
-        r.id === item.id ? { ...r, status: nextStatus } : r
-      )
-    );
-    setSelectedId(item.id);
+    setActionLoadingId(item.id);
+    try {
+      let url = "";
+      if (nextStatus === "approved") {
+        url =
+          typeof ENDPOINTS.adminRegisterOwnerApprove === "function"
+            ? ENDPOINTS.adminRegisterOwnerApprove(item.id)
+            : `${ENDPOINTS.adminRegisterOwners}/${item.id}/approve`;
+      } else if (nextStatus === "rejected") {
+        url =
+          typeof ENDPOINTS.adminRegisterOwnerReject === "function"
+            ? ENDPOINTS.adminRegisterOwnerReject(item.id)
+            : `${ENDPOINTS.adminRegisterOwners}/${item.id}/reject`;
+      }
+      if (!url) throw new Error("Thiếu endpoint cập nhật trạng thái.");
+      const res = await fetch(url, { method: "POST" });
+      if (!res.ok) {
+        const message =
+          nextStatus === "approved"
+            ? "Không thể duyệt đơn đăng ký."
+            : "Không thể từ chối đơn đăng ký.";
+        throw new Error(message);
+      }
+
+      setRegistrations((prev) =>
+        prev.map((r) => (r.id === item.id ? { ...r, status: nextStatus } : r))
+      );
+      setDetail((prev) =>
+        prev && prev.id === item.id ? { ...prev, status: nextStatus } : prev
+      );
+      setSelectedId(item.id);
+    } catch (err) {
+      alert(err.message || "Có lỗi xảy ra khi cập nhật trạng thái.");
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const handleSearchChange = (e) => {
@@ -334,13 +205,10 @@ export default function AdminRegistrationsPage() {
     setPage(Math.min(Math.max(nextPage, 1), totalPages));
   };
 
-  const handleViewDetail = (id) => setSelectedId(id);
-
-  const selected = registrations.find((r) => r.id === selectedId);
-  const mapSrc =
-    selected && selected.mapLink
-      ? `${selected.mapLink}${selected.mapLink.includes("?") ? "&" : "?"}output=embed`
-      : "";
+  const handleViewDetail = (id) => {
+    setSelectedId(id);
+    fetchDetail(id);
+  };
 
   return (
     <div className="admin-system-page">
@@ -367,47 +235,55 @@ export default function AdminRegistrationsPage() {
             </div>
           </div>
 
+          {error && <div className="form-error inline-error">{error}</div>}
+
           <div className="admin-table registration-table">
             <div className="admin-table-row admin-table-head">
               <span>#</span>
-              <span>Tên sân</span>
-              <span>Email</span>
+              <span>Người đăng ký</span>
+              <span>Gmail</span>
               <span>Trạng thái</span>
               <span>Chi tiết</span>
             </div>
-            {paginated.length === 0 && (
+            {loading && (
+              <div className="admin-table-row empty-row">
+                <span>Đang tải...</span>
+              </div>
+            )}
+            {!loading && paginated.length === 0 && (
               <div className="admin-table-row empty-row">
                 <span>Không có dữ liệu</span>
               </div>
             )}
-            {paginated.map((r, idx) => (
-              <div className="admin-table-row" key={r.id}>
-                <span className="cell-bold">
-                  {(currentPage - 1) * pageSize + idx + 1}
-                </span>
-                <span>{r.venue}</span>
-                <span>{r.email}</span>
-                <span>
-                  <span className={`status-badge status-${r.status} compact`}>
-                    {statusLabel[r.status]}
+            {!loading &&
+              paginated.map((r, idx) => (
+                <div className="admin-table-row" key={r.id || idx}>
+                  <span className="cell-bold">
+                    {(currentPage - 1) * pageSize + idx + 1}
                   </span>
-                </span>
-                <span>
-                  <button
-                    type="button"
-                    className="user-action neutral detail-btn"
-                    onClick={() => handleViewDetail(r.id)}
-                  >
-                    Xem chi tiết
-                  </button>
-                </span>
-              </div>
-            ))}
+                  <span>{r.name || "Chưa cập nhật"}</span>
+                  <span>{r.email || "Chưa cập nhật"}</span>
+                  <span>
+                    <span className={`status-badge status-${r.status} compact`}>
+                      {statusLabel[r.status] || r.statusCode || "Chưa rõ"}
+                    </span>
+                  </span>
+                  <span>
+                    <button
+                      type="button"
+                      className="user-action neutral detail-btn"
+                      onClick={() => handleViewDetail(r.id)}
+                    >
+                      Xem chi tiết
+                    </button>
+                  </span>
+                </div>
+              ))}
           </div>
 
           <div className="table-pagination">
             <div className="page-info">
-              Trang {currentPage}/{totalPages} · {filtered.length} đơn
+              Trang {currentPage}/{totalPages} - {filtered.length} đơn
             </div>
             <div className="page-buttons">
               <button
@@ -442,74 +318,89 @@ export default function AdminRegistrationsPage() {
 
         <div className="owner-detail-card">
           <h3>Chi tiết đơn</h3>
-          {!selected ? (
+          {detailLoading ? (
+            <div className="detail-placeholder">Đang tải chi tiết...</div>
+          ) : detailError ? (
+            <div className="detail-placeholder form-error inline-error">
+              {detailError}
+            </div>
+          ) : !detail ? (
             <div className="detail-placeholder">Chọn đơn để xem chi tiết</div>
           ) : (
             <div className="detail-body">
               <div className="detail-row">
-                <span className="label">Tên sân</span>
-                <span className="value">{selected.venue}</span>
-              </div>
-              <div className="detail-row">
                 <span className="label">Người đăng ký</span>
-                <span className="value">{selected.name}</span>
+                <span className="value">{detail.name || "Chưa cập nhật"}</span>
               </div>
               <div className="detail-row">
-                <span className="label">Email</span>
-                <span className="value">{selected.email}</span>
+                <span className="label">Gmail</span>
+                <span className="value">{detail.email || "Chưa cập nhật"}</span>
               </div>
               <div className="detail-row">
                 <span className="label">Số điện thoại</span>
-                <span className="value">{selected.phone}</span>
+                <span className="value">{detail.phone || "Chưa cập nhật"}</span>
               </div>
               <div className="detail-row">
-                <span className="label">Liên hệ sân</span>
-                <span className="value">{selected.venueContact}</span>
+                <span className="label">Địa chỉ</span>
+                <span className="value">{detail.address || "Chưa cập nhật"}</span>
               </div>
               <div className="detail-row">
                 <span className="label">Trạng thái</span>
-                <span className={`status-pill ${selected.status === "approved" ? "status-active" : selected.status === "rejected" ? "status-locked" : "status-pending"}`}>
-                  {statusLabel[selected.status]}
+                <span
+                  className={`status-pill ${
+                    detail.status === "approved"
+                      ? "status-active"
+                      : detail.status === "rejected"
+                      ? "status-locked"
+                      : "status-pending"
+                  }`}
+                >
+                  {statusLabel[detail.status] || detail.statusCode || "Chưa rõ"}
                 </span>
               </div>
               <div className="detail-row">
-                <span className="label">Địa chỉ sân</span>
-                <span className="value">{selected.venueAddress}</span>
+                <span className="label">Ngày tạo</span>
+                <span className="value">{formatDateTime(detail.createdAt)}</span>
               </div>
               <div className="detail-row">
-                <span className="label">Giờ hoạt động</span>
-                <span className="value">
-                  {selected.openTime} - {selected.closeTime}
-                </span>
+                <span className="label">Cập nhật lần cuối</span>
+                <span className="value">{formatDateTime(detail.updatedAt)}</span>
               </div>
               <div className="detail-row map-row">
                 <span className="label">Bản đồ</span>
                 <div className="map-frame">
-                  {mapSrc ? (
-                    <iframe title="Map" src={mapSrc} allowFullScreen loading="lazy" />
+                  {detail.linkMap ? (
+                    <iframe
+                      title="Bản đồ sân"
+                      src={detail.linkMap}
+                      allowFullScreen
+                      loading="lazy"
+                    />
                   ) : (
-                    <div className="map-placeholder">Chưa có map</div>
+                    <div className="map-placeholder">Chưa có bản đồ</div>
                   )}
                 </div>
               </div>
-              <div className="detail-actions">
-                <button
-                  type="button"
-                  className="user-action success"
-                  disabled={selected.status === "approved"}
-                  onClick={() => updateStatus(selected, "approved")}
-                >
-                  Duyệt
-                </button>
-                <button
-                  type="button"
-                  className="user-action danger"
-                  disabled={selected.status === "rejected"}
-                  onClick={() => updateStatus(selected, "rejected")}
-                >
-                  Từ chối
-                </button>
-              </div>
+              {detail.status === "pending" && (
+                <div className="detail-actions">
+                  <button
+                    type="button"
+                    className="user-action success"
+                    disabled={actionLoadingId === detail.id}
+                    onClick={() => updateStatus(detail, "approved")}
+                  >
+                    {actionLoadingId === detail.id ? "Đang duyệt..." : "Duyệt"}
+                  </button>
+                  <button
+                    type="button"
+                    className="user-action danger"
+                    disabled={actionLoadingId === detail.id}
+                    onClick={() => updateStatus(detail, "rejected")}
+                  >
+                    {actionLoadingId === detail.id ? "Đang xử lý..." : "Từ chối"}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

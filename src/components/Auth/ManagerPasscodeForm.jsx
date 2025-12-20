@@ -7,10 +7,18 @@ export default function ManagerPasscodeForm({
   onResend,
   onSubmit,
   onBack,
+  loading = false,
+  error = "",
+  success = "",
 }) {
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit && onSubmit();
+  };
+
+  const handleChange = (e) => {
+    const cleaned = e.target.value.replace(/\D/g, "").slice(0, 6);
+    onChange && onChange(cleaned);
   };
 
   return (
@@ -29,20 +37,23 @@ export default function ManagerPasscodeForm({
         </div>
       </div>
 
+      {error && <p className="form-error">{error}</p>}
+      {success && <p className="form-success">{success}</p>}
+
       <div className="passcode-row">
         <div className="field full">
           <label htmlFor="passcode">Passcode</label>
           <div className="input-wrap">
             <input
-              id="passcode"
-              name="passcode"
+            id="passcode"
+            name="passcode"
             type="text"
             inputMode="numeric"
             maxLength={6}
-            pattern="\\d{6}"
+            pattern="[0-9]{6}"
             placeholder="Nhập mã passcode gồm 6 số"
             value={value}
-            onChange={(e) => onChange && onChange(e.target.value)}
+              onChange={handleChange}
             required
           />
           </div>
@@ -51,25 +62,14 @@ export default function ManagerPasscodeForm({
           type="button"
           className="btn primary resend"
           onClick={() => onResend && onResend()}
+          disabled={loading}
         >
           Gửi lại
         </button>
       </div>
 
       <div className="passcode-note">
-        <p>
-          Passcode được gửi tới gmail đăng ký của bạn. Nhấn gửi lại, nếu không
-          nhận được passcode.
-        </p>
-        <p>
-          Sau khi hoàn tất đăng ký, tài khoản của bạn sẽ được hệ thống kiểm
-          duyệt trong 1-2 ngày làm việc trước khi cấp phép hoạt động.
-        </p>
-        <p>
-          Kết quả xét duyệt sẽ được gửi qua email đã đăng ký. Khi được phê
-          duyệt, bạn có thể bắt đầu quản lý và đăng tải thông tin sân thể thao
-          trên hệ thống.
-        </p>
+        <p>Passcode được gửi tới gmail đăng ký của bạn. Nhấn gửi lại nếu không nhận được.</p>
       </div>
 
       <div className="manager-actions">
@@ -83,8 +83,8 @@ export default function ManagerPasscodeForm({
         >
           Quay lại
         </button>
-        <button type="submit" className="btn primary full">
-          Đăng ký
+        <button type="submit" className="btn primary full" disabled={loading}>
+          {loading ? "Đang đăng ký..." : "Đăng ký"}
         </button>
       </div>
 
