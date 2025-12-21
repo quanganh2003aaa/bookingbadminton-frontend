@@ -1,15 +1,25 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ownerVenueDetails } from "../../services/ownerMockData";
+import { ENDPOINTS } from "../../api/endpoints";
 import "./owner-venue-detail.css";
 
-const statusClass = (status) =>
-  status?.toLowerCase().includes("ngừng") ? "status-stop" : "status-ok";
+const statusClass = (status = "") => {
+  const lower = status.toLowerCase();
+  return lower.includes("ngừng") || lower.includes("ngung") ? "status-stop" : "status-ok";
+};
 
-const formatCurrency = (value) => {
-  if (!value) return "";
-  const digits = value.replace(/\D/g, "");
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+const activeToLabel = (active = "") => {
+  const upper = active.toUpperCase();
+  if (upper === "ACTIVE") return "Hoạt động";
+  if (upper === "INACTIVE") return "Ngừng hoạt động";
+  return active || "Chưa rõ";
+};
+
+const labelToActive = (label = "") => {
+  const upper = label.toUpperCase();
+  if (upper.includes("NGỪNG") || upper.includes("NGUNG")) return "INACTIVE";
+  return "ACTIVE";
 };
 
 const parseTimeToMinutes = (timeStr) => {
@@ -23,76 +33,147 @@ const minutesToTime = (minutes) => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
+const formatCurrency = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+};
+
+const Notice = ({ type = "info", message }) => {
+  if (!message) return null;
+  const palette = {
+    info: { bg: "#e8f4ff", color: "#0b63ce", border: "#b5d7ff" },
+    success: { bg: "#e7f6ed", color: "#1b7a3d", border: "#bde5c4" },
+    error: { bg: "#fdecea", color: "#a52a2a", border: "#f5c6c6" },
+  };
+  const tone = palette[type] || palette.info;
+  return (
+    <div
+      style={{
+        background: tone.bg,
+        color: tone.color,
+        border: `1px solid ${tone.border}`,
+        padding: "12px 14px",
+        borderRadius: 10,
+        marginBottom: 12,
+      }}
+    >
+      {message}
+    </div>
+  );
+};
+
+const normalizeHour = (value = "") => {
+  if (!value) return "";
+  const parts = value.split(":");
+  if (parts.length >= 2) return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
+  return value;
+};
+
 export default function OwnerVenueDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const venue = useMemo(() => {
-    const byId = ownerVenueDetails.find((item) => item.id === Number(id));
+  const fallbackVenue = useMemo(() => {
+    const byId = ownerVenueDetails.find((item) => String(item.id) === String(id));
     return byId || ownerVenueDetails[0];
   }, [id]);
 
   const [isEditingInfo, setIsEditingInfo] = useState(false);
   const [isEditingPricing, setIsEditingPricing] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [infoSaving, setInfoSaving] = useState(false);
+  const [infoMessage, setInfoMessage] = useState("");
+  const [pricingSaving, setPricingSaving] = useState(false);
+  const [pricingMessage, setPricingMessage] = useState("");
   const [form, setForm] = useState({
-    name: venue.name,
-    address: venue.address,
-    contact: venue.contact,
-    status: venue.status,
-    openTime: venue.openTime,
-    closeTime: venue.closeTime,
-    mapLink: venue.mapLink || "",
+    name: fallbackVenue.name,
+    address: fallbackVenue.address,
+    contact: fallbackVenue.contact,
+    status: fallbackVenue.status,
+    openTime: fallbackVenue.openTime,
+    closeTime: fallbackVenue.closeTime,
+    mapLink: fallbackVenue.mapLink || "",
+    quantity: fallbackVenue.quantity || fallbackVenue.courts || 0,
   });
 
-  const initialSlots =
-    venue.schedules && venue.schedules.length
-      ? venue.schedules.map((slot) => ({
-          start: slot.start,
-          price: slot.price.replace(/\D/g, ""),
-        }))
-      : [{ start: venue.openTime, price: "" }];
-
-  const [slots, setSlots] = useState(initialSlots);
-  const [backupSlots, setBackupSlots] = useState(initialSlots);
-  const [images, setImages] = useState(venue.images || []);
+  const [slots, setSlots] = useState([]);
+  const [backupSlots, setBackupSlots] = useState([]);
+  const [images, setImages] = useState(fallbackVenue.images || []);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
+  const [slotsLoaded, setSlotsLoaded] = useState(false);
 
   const statusOptions = ["Hoạt động", "Ngừng hoạt động"];
+
+  useEffect(() => {
+    const ownerId = localStorage.getItem("ownerId") || "";
+    if (!ownerId) {
+      setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
+      return;
+    }
+    const fetchDetail = async () => {
+      setLoading(true);
+      setError("");
+      try {
+        const params = new URLSearchParams();
+        params.append("ownerId", ownerId);
+        const url =
+          typeof ENDPOINTS.ownerFieldDetail === "function"
+            ? `${ENDPOINTS.ownerFieldDetail(id)}?${params.toString()}`
+            : `${ENDPOINTS.ownerFields}/${id}?${params.toString()}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Không thể tải chi tiết sân.");
+        const data = await res.json().catch(() => ({}));
+        const item = data.result || {};
+        setForm({
+          name: item.name || "",
+          address: item.address || "",
+          contact: item.msisdn || item.mobileContact || "",
+          status: activeToLabel(item.active || ""),
+          openTime: item.startTime || "",
+          closeTime: item.endTime || "",
+          mapLink: item.linkMap || "",
+          quantity: item.quantity ?? 0,
+        });
+        setImages([]);
+      } catch (err) {
+        setError(err.message || "Có lỗi xảy ra khi tải chi tiết sân.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetail();
+  }, [id]);
+
+  useEffect(() => {
+    setSlots((prev) => {
+      if (!prev.length) return prev;
+      const updated = [...prev];
+      updated[0] = { ...updated[0], start: form.openTime || updated[0].start };
+      return updated;
+    });
+  }, [form.openTime]);
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
   };
 
-  const getSlotEnd = (index) =>
-    index < slots.length - 1 ? slots[index + 1].start : form.closeTime;
-
-  const syncFirstSlotWithOpenTime = () => {
-    setSlots((prev) => {
-      if (!prev.length) return [{ start: form.openTime, price: "" }];
-      const updated = [...prev];
-      updated[0] = { ...updated[0], start: form.openTime };
-      return updated;
-    });
+  const getSlotEnd = (index) => {
+    const current = slots[index];
+    if (current?.end) return current.end;
+    if (index < slots.length - 1) return slots[index + 1].start;
+    return form.closeTime;
   };
-
-  const ensureSingleSlotForNew = () => {
-    if (!slots.length) setSlots([{ start: form.openTime, price: "" }]);
-  };
-
-  useEffect(() => {
-    syncFirstSlotWithOpenTime();
-  }, [form.openTime]);
-
-  useEffect(() => {
-    ensureSingleSlotForNew();
-  }, [slots.length]);
 
   const validateInfo = () => {
     const newErrors = {};
     if (!form.name.trim()) newErrors.name = "Tên sân không được để trống";
     if (!form.address.trim()) newErrors.address = "Địa chỉ không được để trống";
     if (!form.contact.trim()) newErrors.contact = "Số liên hệ không được để trống";
+    if (form.quantity === "" || Number(form.quantity) < 0) {
+      newErrors.quantity = "Số sân con phải lớn hơn hoặc bằng 0";
+    }
 
     if (!form.openTime || !form.closeTime) {
       newErrors.time = "Giờ hoạt động không được để trống";
@@ -148,7 +229,7 @@ export default function OwnerVenueDetailPage() {
         }
 
         if (i > 0 && starts[i] <= starts[i - 1]) {
-          newErrors.slots = "Mỗi khung giờ phải muộn hơn khung trước đó";
+          newErrors.slots = "Mỗi khung giờ phải muộn hơn khung trước";
           break;
         }
 
@@ -171,25 +252,99 @@ export default function OwnerVenueDetailPage() {
   const handleToggleEditInfo = () => {
     if (isEditingInfo) {
       if (!validateInfo()) return;
-      // TODO: call API to save info
+      const ownerId = localStorage.getItem("ownerId") || "";
+      if (!ownerId) {
+        setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
+        return;
+      }
+      const saveInfo = async () => {
+        setInfoSaving(true);
+        setError("");
+        setInfoMessage("");
+        try {
+          const params = new URLSearchParams();
+          params.append("ownerId", ownerId);
+          const url =
+            typeof ENDPOINTS.ownerFieldDetail === "function"
+              ? `${ENDPOINTS.ownerFieldDetail(id)}?${params.toString()}`
+              : `${ENDPOINTS.ownerFields}/${id}?${params.toString()}`;
+          const payload = {
+            ownerId,
+            name: form.name.trim(),
+            address: form.address.trim(),
+            ratePoint: 0,
+            quantity: Number(form.quantity) || 0,
+            mobileContact: form.contact.trim(),
+            startTime: form.openTime || null,
+            endTime: form.closeTime || null,
+            active: labelToActive(form.status),
+            linkMap: form.mapLink || "",
+          };
+          const res = await fetch(url, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || "Cập nhật thông tin thất bại.");
+          }
+          setInfoMessage("Cập nhật thông tin thành công.");
+          await fetchTimeSlots();
+          setIsEditingInfo(false);
+        } catch (err) {
+          setError(err.message || "Có lỗi xảy ra khi cập nhật thông tin.");
+        } finally {
+          setInfoSaving(false);
+        }
+      };
+      saveInfo();
+      return;
     }
-    setIsEditingInfo((prev) => !prev);
+    setInfoMessage("");
+    setIsEditingInfo(true);
   };
 
-  const handleFileClick = () => fileInputRef.current?.click();
+  const handleAddSlot = () => {
+    if (!isEditingPricing) return;
+    if (!form.openTime || !form.closeTime) return;
+    const lastSlot = slots[slots.length - 1] || {};
+    const lastStart = parseTimeToMinutes(lastSlot.start || form.openTime);
+    const lastEnd = parseTimeToMinutes(form.closeTime);
+    if (Number.isNaN(lastStart) || Number.isNaN(lastEnd) || lastEnd <= lastStart) return;
+    const mid = minutesToTime(Math.floor((lastStart + lastEnd) / 2));
+    setSlots((prev) => {
+      const updated = [...prev];
+      if (updated.length) {
+        updated[updated.length - 1] = { ...updated[updated.length - 1], end: mid };
+      }
+      updated.push({ start: mid, end: form.closeTime, price: "" });
+      return updated;
+    });
+  };
 
-  const handleFilesSelected = (e) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newPreviews]);
+  const handleDeleteSlot = (idx) => {
+    if (!isEditingPricing) return;
+    if (idx === 0 && slots.length === 1) return;
+    setSlots((prev) => {
+      const nextStart = prev[idx + 1]?.start || form.closeTime;
+      const updated = prev.filter((_, i) => i !== idx);
+      if (idx - 1 >= 0 && updated[idx - 1]) {
+        updated[idx - 1] = { ...updated[idx - 1], end: nextStart };
+      }
+      return updated;
+    });
   };
 
   const handleSlotStartChange = (idx, value) => {
     if (idx === 0) return;
     setSlots((prev) => {
       const updated = [...prev];
-      updated[idx] = { ...updated[idx], start: value };
+      const safeValue = value || updated[idx].start;
+      updated[idx] = { ...updated[idx], start: safeValue };
+      if (idx - 1 >= 0) {
+        updated[idx - 1] = { ...updated[idx - 1], end: safeValue };
+      }
       return updated;
     });
   };
@@ -202,26 +357,39 @@ export default function OwnerVenueDetailPage() {
     });
   };
 
-  const handleAddSlot = () => {
-    if (!isEditingPricing) return;
-    if (!form.openTime || !form.closeTime) return;
-    const lastStart = parseTimeToMinutes(slots[slots.length - 1].start);
-    const lastEnd = parseTimeToMinutes(form.closeTime);
-    if (lastEnd <= lastStart) return;
-    const mid = minutesToTime(Math.floor((lastStart + lastEnd) / 2));
-    setSlots((prev) => [...prev, { start: mid, price: "" }]);
-  };
-
-  const handleDeleteSlot = (idx) => {
-    if (!isEditingPricing) return;
-    if (idx === 0 && slots.length === 1) return;
-    setSlots((prev) => prev.filter((_, i) => i !== idx));
-  };
-
   const handleSaveSlots = () => {
     if (!validatePricing()) return;
-    setBackupSlots(slots);
-    setIsEditingPricing(false);
+    const payload = slots.map((slot, idx) => ({
+      price: Number(slot.price) || 0,
+      startHour: slot.start || form.openTime,
+      endHour: getSlotEnd(idx),
+    }));
+    const target = ENDPOINTS.timeSlotsField
+      ? ENDPOINTS.timeSlotsField(id)
+      : `${ENDPOINTS.ownerFields}/${id}`;
+    const saveSlots = async () => {
+      setPricingSaving(true);
+      setPricingMessage("");
+      try {
+        const res = await fetch(target, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message || "Cập nhật bảng giá thất bại.");
+        }
+        setPricingMessage("Cập nhật bảng giá thành công.");
+        setBackupSlots(slots);
+        setIsEditingPricing(false);
+      } catch (err) {
+        setError(err.message || "Có lỗi xảy ra khi cập nhật bảng giá.");
+      } finally {
+        setPricingSaving(false);
+      }
+    };
+    saveSlots();
   };
 
   const handleCancelSlots = () => {
@@ -230,32 +398,81 @@ export default function OwnerVenueDetailPage() {
     setErrors((prev) => ({ ...prev, slots: undefined }));
   };
 
+  const handleFilesSelected = (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setImages((prev) => [...prev, ...newPreviews]);
+  };
+
+  const fetchTimeSlots = useCallback(async () => {
+    try {
+      setSlotsLoaded(false);
+      const url = ENDPOINTS.timeSlotsField ? ENDPOINTS.timeSlotsField(id) : "";
+      if (!url) return;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({}));
+      const list = Array.isArray(data.result) ? data.result : [];
+      if (!list.length) {
+        setSlots([]);
+        setBackupSlots([]);
+        return;
+      }
+      const mapped = list.map((item, idx) => ({
+        start: normalizeHour(item.startHour),
+        end: normalizeHour(item.endHour),
+        price: String(item.price ?? "").replace(/\D/g, ""),
+        idx,
+      }));
+      const slotsFromApi = mapped.map((m) => ({
+        start: m.start,
+        end: m.end,
+        price: m.price,
+      }));
+      setSlots(slotsFromApi);
+      setBackupSlots(slotsFromApi);
+      setSlotsLoaded(true);
+      const lastEnd = mapped[mapped.length - 1]?.end;
+      if (lastEnd) {
+        setForm((prev) => ({
+          ...prev,
+          openTime: mapped[0]?.start || prev.openTime,
+          closeTime: lastEnd,
+        }));
+      }
+    } catch (err) {
+      // swallow errors to avoid blocking main flow
+    }
+  }, [id]);
+
+  useEffect(() => {
+    fetchTimeSlots();
+  }, [fetchTimeSlots]);
+
+  // No fallback slots when API has no data; keep empty to avoid showing mock.
+
   return (
     <div className="owner-venue-detail">
       <div className="detail-header">
         <div>
           <p className="owner-subtitle">Thông tin sân</p>
-          <h1 className="owner-venues-title">{venue.name}</h1>
+          <h1 className="owner-venues-title">{form.name || fallbackVenue.name}</h1>
         </div>
-        <button
-          type="button"
-          className="ghost-btn"
-          onClick={() => navigate("/owner")}
-        >
+        <button type="button" className="ghost-btn" onClick={() => navigate("/owner")}>
           Quay lại danh sách
         </button>
       </div>
+
+      <Notice type="error" message={error} />
+      {loading && <Notice type="info" message="Đang tải chi tiết..." />}
 
       <div className="detail-layout">
         <section className="detail-card info-card">
           <div className="info-row">
             <div className="field">
               <label>Tên sân</label>
-              <input
-                value={form.name}
-                onChange={handleChange("name")}
-                readOnly={!isEditingInfo}
-              />
+              <input value={form.name} onChange={handleChange("name")} readOnly={!isEditingInfo} />
               {errors.name && <p className="field-error">{errors.name}</p>}
             </div>
             <div className="field status-field">
@@ -273,20 +490,25 @@ export default function OwnerVenueDetailPage() {
                   ))}
                 </select>
               ) : (
-                <span className={`status-badge ${statusClass(form.status)}`}>
-                  {form.status}
-                </span>
+                <span className={`status-badge ${statusClass(form.status)}`}>{form.status}</span>
               )}
             </div>
           </div>
           <div className="field">
             <label>Địa chỉ</label>
+            <input value={form.address} onChange={handleChange("address")} readOnly={!isEditingInfo} />
+            {errors.address && <p className="field-error">{errors.address}</p>}
+          </div>
+          <div className="field">
+            <label>Số sân con</label>
             <input
-              value={form.address}
-              onChange={handleChange("address")}
+              type="number"
+              min="0"
+              value={form.quantity}
+              onChange={handleChange("quantity")}
               readOnly={!isEditingInfo}
             />
-            {errors.address && <p className="field-error">{errors.address}</p>}
+            {errors.quantity && <p className="field-error">{errors.quantity}</p>}
           </div>
           <div className="field">
             <label>Link map</label>
@@ -299,11 +521,7 @@ export default function OwnerVenueDetailPage() {
           </div>
           <div className="field">
             <label>Số liên hệ</label>
-            <input
-              value={form.contact}
-              onChange={handleChange("contact")}
-              readOnly={!isEditingInfo}
-            />
+            <input value={form.contact} onChange={handleChange("contact")} readOnly={!isEditingInfo} />
             {errors.contact && <p className="field-error">{errors.contact}</p>}
           </div>
           <div className="field">
@@ -328,14 +546,11 @@ export default function OwnerVenueDetailPage() {
             {errors.time && <p className="field-error">{errors.time}</p>}
           </div>
           <div className="info-actions">
-            <button
-              type="button"
-              className="primary-btn"
-              onClick={handleToggleEditInfo}
-            >
-              {isEditingInfo ? "Lưu" : "Cập nhật thông tin"}
+            <button type="button" className="primary-btn" onClick={handleToggleEditInfo} disabled={infoSaving}>
+              {isEditingInfo ? (infoSaving ? "Đang lưu..." : "Lưu") : "Cập nhật thông tin"}
             </button>
           </div>
+          <Notice type="success" message={infoMessage} />
         </section>
 
         <section className="detail-card schedule-card">
@@ -346,47 +561,41 @@ export default function OwnerVenueDetailPage() {
             <div />
           </div>
           <div className="schedule-list">
-            {slots.map((slot, idx) => (
-              <div className="slot-row" key={`${slot.start}-${idx}`}>
-                <div className="slot-time">
-                  <input
-                    type="time"
-                    value={idx === 0 ? form.openTime : slot.start}
-                    onChange={(e) => handleSlotStartChange(idx, e.target.value)}
-                    disabled={!isEditingPricing || idx === 0}
-                  />
+            {slots.length === 0 ? (
+              <div className="slot-row empty-row">Chưa có ca sân</div>
+            ) : (
+              slots.map((slot, idx) => (
+                <div className="slot-row" key={`${slot.start}-${idx}`}>
+                  <div className="slot-time">
+                    <input
+                      type="time"
+                      value={slot.start || form.openTime}
+                      onChange={(e) => handleSlotStartChange(idx, e.target.value)}
+                      disabled={!isEditingPricing || idx === 0}
+                    />
+                  </div>
+                  <div className="slot-time">
+                    <input type="time" value={getSlotEnd(idx)} readOnly />
+                  </div>
+                  <div className="price-input">
+                    <input
+                      value={formatCurrency(slot.price)}
+                      onChange={(e) => handleSlotPriceChange(idx, e.target.value)}
+                      readOnly={!isEditingPricing}
+                      placeholder="Giá"
+                    />
+                    <span className="price-suffix">VND</span>
+                  </div>
+                  <div className="slot-actions">
+                    {isEditingPricing && idx > 0 && (
+                      <button type="button" className="icon-btn" onClick={() => handleDeleteSlot(idx)}>
+                        -
+                      </button>
+                    )}
+                  </div>
                 </div>
-                <div className="slot-time">
-                  <input type="time" value={getSlotEnd(idx)} readOnly />
-                </div>
-                <div className="price-input">
-                  <input
-                    value={formatCurrency(slot.price)}
-                    onChange={(e) => handleSlotPriceChange(idx, e.target.value)}
-                    readOnly={!isEditingPricing}
-                    placeholder="Giá"
-                    disabled={
-                      !isEditingPricing ||
-                      !slots[idx].start ||
-                      !getSlotEnd(idx) ||
-                      getSlotEnd(idx) === "Invalid"
-                    }
-                  />
-                  <span className="price-suffix">VND</span>
-                </div>
-                <div className="slot-actions">
-                  {isEditingPricing && idx > 0 && (
-                    <button
-                      type="button"
-                      className="icon-btn"
-                      onClick={() => handleDeleteSlot(idx)}
-                    >
-                      ×
-                    </button>
-                  )}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
           <div className="schedule-actions">
             {!isEditingPricing ? (
@@ -396,7 +605,7 @@ export default function OwnerVenueDetailPage() {
                 onClick={() => {
                   setBackupSlots(slots);
                   setIsEditingPricing(true);
-                  setErrors({});
+                  setErrors((prev) => ({ ...prev, slots: undefined }));
                 }}
               >
                 Cập nhật bảng giá
@@ -404,25 +613,18 @@ export default function OwnerVenueDetailPage() {
             ) : (
               <>
                 <div className="slot-confirm">
-                  <button
-                    type="button"
-                    className="ghost-btn"
-                    onClick={handleAddSlot}
-                  >
+                  <button type="button" className="ghost-btn" onClick={handleAddSlot}>
                     Thêm khung giờ
                   </button>
                   <button
                     type="button"
                     className="primary-btn"
                     onClick={handleSaveSlots}
+                    disabled={pricingSaving}
                   >
-                    Lưu
+                    {pricingSaving ? "Đang lưu..." : "Lưu"}
                   </button>
-                  <button
-                    type="button"
-                    className="ghost-btn"
-                    onClick={handleCancelSlots}
-                  >
+                  <button type="button" className="ghost-btn" onClick={handleCancelSlots}>
                     Hủy
                   </button>
                 </div>
@@ -430,12 +632,13 @@ export default function OwnerVenueDetailPage() {
               </>
             )}
           </div>
+          <Notice type="success" message={pricingMessage} />
         </section>
       </div>
 
       {form.mapLink && (
         <section className="detail-card map-card">
-          <h3>Vị trí bản đồ</h3>
+          <h3>Bản đồ</h3>
           <div className="map-frame">
             <iframe
               src={form.mapLink}
@@ -451,11 +654,7 @@ export default function OwnerVenueDetailPage() {
       <section className="detail-card gallery-card">
         <div className="gallery-header">
           <h3>Hình ảnh</h3>
-          <button
-            type="button"
-            className="icon-upload-btn"
-            onClick={handleFileClick}
-          >
+          <button type="button" className="icon-upload-btn" onClick={() => fileInputRef.current?.click()}>
             +
           </button>
           <input

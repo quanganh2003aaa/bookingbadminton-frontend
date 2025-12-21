@@ -5,6 +5,7 @@ export const ENDPOINTS = {
   login: `${API_BASE}/accounts/login`,
   registerOwnerPasscode: `${API_BASE}/passcodes/register-owner`,
   registerOwnerConfirm: `${API_BASE}/register-owners/confirm`,
+  loginOwner: `${API_BASE}/accounts/login/owner`,
   adminRegisterOwners: `${API_BASE}/register-owners/admin`,
   adminRegisterOwnerDetail: (id) =>
     `${API_BASE}/register-owners/${encodeURIComponent(id)}/detail`,
@@ -18,4 +19,8 @@ export const ENDPOINTS = {
   adminFields: `${API_BASE}/fields/admin`,
   adminFieldDetail: (id) =>
     `${API_BASE}/fields/${encodeURIComponent(id)}/detail`,
+  ownerFields: `${API_BASE}/fields/owner`,
+  ownerFieldDetail: (id) =>
+    `${API_BASE}/fields/owner/${encodeURIComponent(id)}`,
+  timeSlotsField: (id) => `${API_BASE}/time-slots/field/${encodeURIComponent(id)}`,
 };
