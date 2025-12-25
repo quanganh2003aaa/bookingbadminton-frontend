@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ownerVenueDetails } from "../../services/ownerMockData";
-import { ENDPOINTS } from "../../api/endpoints";
+import { ENDPOINTS, API_BASE } from "../../api/endpoints";
 import "./owner-venue-detail.css";
 
 const statusClass = (status = "") => {
@@ -38,6 +38,23 @@ const formatCurrency = (value) => {
   return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
+const API_HOST = (
+  import.meta.env?.VITE_API_BASE ||
+  API_BASE ||
+  ENDPOINTS.API_HOST ||
+  ""
+)
+  .replace(/\/api$/, "")
+  .replace(/\/$/, "");
+
+const CLIENT_ORIGIN = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
+
+const withBase = (path = "") => {
+  const base = CLIENT_ORIGIN || API_HOST || "";
+  if (!base) return path.startsWith("/") ? path : `/${path}`;
+  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
+};
+
 const Notice = ({ type = "info", message }) => {
   if (!message) return null;
   const palette = {
@@ -69,6 +86,45 @@ const normalizeHour = (value = "") => {
   return value;
 };
 
+const normalizeImageSrc = (value = "") => {
+  if (!value) return "";
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+  const normalized = value.replace(/\\\\/g, "/").replace(/\\/g, "/");
+  const lower = normalized.toLowerCase();
+
+  const uploadFieldsIdx = lower.lastIndexOf("/upload/fields/");
+  if (uploadFieldsIdx !== -1) {
+    const rel = normalized.slice(uploadFieldsIdx);
+    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
+  }
+
+  const uploadFromSrcIdx = lower.indexOf("/src/assets/image/upload/");
+  if (uploadFromSrcIdx !== -1) {
+    const rel = normalized.slice(uploadFromSrcIdx);
+    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
+  }
+
+  const uploadIdx = lower.indexOf("/upload/");
+  if (uploadIdx !== -1) {
+    const rel = normalized.slice(uploadIdx);
+    return encodeURI(withBase(rel));
+  }
+
+  const publicIdx = lower.indexOf("/public/");
+  if (publicIdx !== -1) {
+    const rel = normalized.slice(publicIdx + "/public".length);
+    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
+  }
+
+  const srcIdx = lower.indexOf("/src/");
+  if (srcIdx !== -1) {
+    const rel = normalized.slice(srcIdx);
+    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
+  }
+
+  return encodeURI(withBase(normalized.startsWith("/") ? normalized : `/${normalized}`));
+};
+
 export default function OwnerVenueDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -86,6 +142,8 @@ export default function OwnerVenueDetailPage() {
   const [infoMessage, setInfoMessage] = useState("");
   const [pricingSaving, setPricingSaving] = useState(false);
   const [pricingMessage, setPricingMessage] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
   const [form, setForm] = useState({
     name: fallbackVenue.name,
     address: fallbackVenue.address,
@@ -99,10 +157,11 @@ export default function OwnerVenueDetailPage() {
 
   const [slots, setSlots] = useState([]);
   const [backupSlots, setBackupSlots] = useState([]);
-  const [images, setImages] = useState(fallbackVenue.images || []);
+  const [images, setImages] = useState([]);
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
   const [slotsLoaded, setSlotsLoaded] = useState(false);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   const statusOptions = ["Hoạt động", "Ngừng hoạt động"];
 
@@ -136,7 +195,6 @@ export default function OwnerVenueDetailPage() {
           mapLink: item.linkMap || "",
           quantity: item.quantity ?? 0,
         });
-        setImages([]);
       } catch (err) {
         setError(err.message || "Có lỗi xảy ra khi tải chi tiết sân.");
       } finally {
@@ -401,8 +459,34 @@ export default function OwnerVenueDetailPage() {
   const handleFilesSelected = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    const newPreviews = files.map((file) => URL.createObjectURL(file));
-    setImages((prev) => [...prev, ...newPreviews]);
+    const upload = async () => {
+      setUploading(true);
+      setUploadMessage("");
+      try {
+        const uploadUrl =
+          typeof ENDPOINTS.fieldImageUpload === "function"
+            ? ENDPOINTS.fieldImageUpload(id)
+            : `${ENDPOINTS.ownerFields}/${id}/images/upload`;
+        for (const file of files) {
+          const formData = new FormData();
+          formData.append("file", file);
+          formData.append("type", "USING");
+          const res = await fetch(uploadUrl, { method: "POST", body: formData });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || "Tải ảnh thất bại.");
+          }
+        }
+        await fetchImages();
+        setUploadMessage("Đã thêm ảnh thành công.");
+      } catch (err) {
+        setError(err.message || "Có lỗi khi tải ảnh.");
+      } finally {
+        setUploading(false);
+        e.target.value = "";
+      }
+    };
+    upload();
   };
 
   const fetchTimeSlots = useCallback(async () => {
@@ -446,9 +530,34 @@ export default function OwnerVenueDetailPage() {
     }
   }, [id]);
 
+  const fetchImages = useCallback(async () => {
+    try {
+      setImagesLoaded(false);
+      const url = ENDPOINTS.fieldImages ? ENDPOINTS.fieldImages(id) : "";
+      if (!url) return;
+      const res = await fetch(url);
+      if (!res.ok) return;
+      const data = await res.json().catch(() => ({}));
+      const list = Array.isArray(data.result) ? data.result : [];
+      if (!list.length) {
+        setImages([]);
+        setImagesLoaded(true);
+        return;
+      }
+      const urls = list
+        .map((img) => normalizeImageSrc(img.url || img.link || img.path || img))
+        .filter(Boolean);
+      setImages(urls);
+      setImagesLoaded(true);
+    } catch (err) {
+      // silent fail; keep existing images
+    }
+  }, [id]);
+
   useEffect(() => {
     fetchTimeSlots();
-  }, [fetchTimeSlots]);
+    fetchImages();
+  }, [fetchTimeSlots, fetchImages]);
 
   // No fallback slots when API has no data; keep empty to avoid showing mock.
 
@@ -666,10 +775,14 @@ export default function OwnerVenueDetailPage() {
             onChange={handleFilesSelected}
           />
         </div>
+        <Notice type={uploading ? "info" : "success"} message={uploading ? "Đang tải ảnh..." : uploadMessage} />
         <div className="gallery-strip">
+          {imagesLoaded && images.length === 0 && (
+            <div className="gallery-item placeholder">Chua co anh duoc tra ve</div>
+          )}
           {images?.map((src, idx) => (
             <div className="gallery-item" key={src + idx}>
-              <img src={src} alt={`Ảnh sân ${idx + 1}`} />
+              <img src={src} alt={`Anh san ${idx + 1}`} />
             </div>
           ))}
         </div>

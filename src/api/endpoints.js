@@ -22,5 +22,8 @@ export const ENDPOINTS = {
   ownerFields: `${API_BASE}/fields/owner`,
   ownerFieldDetail: (id) =>
     `${API_BASE}/fields/owner/${encodeURIComponent(id)}`,
+  ownerFieldBookings: `${API_BASE}/fields/owner/bookings`,
   timeSlotsField: (id) => `${API_BASE}/time-slots/field/${encodeURIComponent(id)}`,
+  fieldImageUpload: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images/upload`,
+  fieldImages: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images`,
 };
