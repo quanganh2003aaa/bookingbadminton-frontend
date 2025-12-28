@@ -1,13 +1,28 @@
 import React, { useMemo, useState } from "react";
-import { FiClock, FiMapPin, FiPhone, FiStar } from "react-icons/fi";
+import {
+  Modal,
+  Tabs,
+  Image,
+  Avatar,
+  Tag,
+  Button,
+  Rate,
+  List,
+  Table,
+  Typography,
+  Space,
+  Card,
+} from "antd";
+import {
+  EnvironmentOutlined,
+  ClockCircleOutlined,
+  PhoneOutlined,
+  StarFilled,
+  UserOutlined,
+} from "@ant-design/icons";
 import "./venueDetailModal.css";
 
-const TABS = [
-  { key: "images", label: "Hình ảnh" },
-  { key: "pricing", label: "Giá sân" },
-  { key: "map", label: "Bản đồ" },
-  { key: "reviews", label: "Đánh giá" },
-];
+const { Title, Text } = Typography;
 
 export default function VenueDetailModal({ venue, onClose, onBook }) {
   const [activeTab, setActiveTab] = useState("images");
@@ -26,169 +41,161 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
     reviews = [],
   } = venue;
 
-  const displayImages = useMemo(
-    () => (images.length ? images : [image]),
-    [images, image]
-  );
+  const displayImages = useMemo(() => (images.length ? images : image ? [image] : []), [images, image]);
 
   const avgRating = useMemo(() => {
     if (!reviews.length) return 0;
-    const total = reviews.reduce(
-      (sum, r) => sum + (typeof r.rating === "number" ? r.rating : 0),
-      0
-    );
+    const total = reviews.reduce((sum, r) => sum + (Number(r.rating) || 0), 0);
     return +(total / reviews.length).toFixed(1);
   }, [reviews]);
 
+  const pricingColumns = [
+    { title: "Khung giờ", dataIndex: "time", key: "time", width: 140 },
+    {
+      title: "Giá",
+      dataIndex: "price",
+      key: "price",
+      render: (val) => <span className="price-text">{Number(val).toLocaleString("vi-VN")} VND</span>,
+      align: "right",
+    },
+  ];
+
+  const tabItems = [
+    {
+      key: "images",
+      label: "Hình ảnh",
+      children: (
+        <Image.PreviewGroup>
+          <div className="images-grid">
+            {displayImages.length ? (
+              displayImages.map((src, idx) => (
+                <Card key={src + idx} className="image-card" cover={<Image src={src} alt={`${name} ${idx + 1}`} />}></Card>
+              ))
+            ) : (
+              <div className="placeholder-panel">Chưa có hình ảnh</div>
+            )}
+          </div>
+        </Image.PreviewGroup>
+      ),
+    },
+    {
+      key: "pricing",
+      label: "Giá sân",
+      children: (
+        <Table
+          columns={pricingColumns}
+          dataSource={(pricing || []).map((p, idx) => ({ key: idx, ...p }))}
+          pagination={false}
+          size="middle"
+        />
+      ),
+    },
+    {
+      key: "map",
+      label: "Bản đồ",
+      children: mapEmbed ? (
+        <div className="map-wrapper">
+          <iframe
+            src={mapEmbed}
+            allowFullScreen
+            loading="lazy"
+            referrerPolicy="no-referrer-when-downgrade"
+            title="Bản đồ"
+          />
+        </div>
+      ) : (
+        <div className="placeholder-panel">Bản đồ đang được cập nhật</div>
+      ),
+    },
+    {
+      key: "reviews",
+      label: "Đánh giá",
+      children: (
+        <List
+          dataSource={reviews}
+          locale={{ emptyText: "Chưa có đánh giá" }}
+          renderItem={(r) => (
+            <List.Item className="review-item">
+              <List.Item.Meta
+                avatar={
+                  r.avatar ? (
+                    <Avatar src={r.avatar} />
+                  ) : (
+                    <Avatar>{(r.name || "?").charAt(0)}</Avatar>
+                  )
+                }
+                title={
+                  <Space align="center">
+                    <Text strong>{r.name}</Text>
+                    <Rate disabled allowHalf defaultValue={r.rating || 0} />
+                  </Space>
+                }
+                description={<Text type="secondary">{r.comment}</Text>}
+              />
+            </List.Item>
+          )}
+        />
+      ),
+    },
+  ];
+
   return (
-    <div className="venue-modal-backdrop" onClick={onClose}>
-      <div
-        className="venue-modal"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-      >
-        <div className="venue-modal-hero">
-          <img src={displayImages[0]} alt={name} />
-        </div>
-
-        <div className="venue-modal-body">
-          <div className="venue-header">
-            <div className="venue-header-left">
-              <div className="venue-avatar">
-                <img src={image} alt={name} />
-              </div>
-              <div className="venue-title-block">
-                <h3>{name}</h3>
-                <div className="venue-meta-row">
-                  <FiMapPin />
-                  <span>{address}</span>
-                </div>
-                <div className="venue-meta-inline">
-                  <div className="venue-meta-row">
-                    <FiClock />
-                    <span>
-                      {startTime} - {endTime}
-                    </span>
-                  </div>
-                  <div className="venue-meta-row">
-                    <FiPhone />
-                    <span>{phone}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <button
-              className="venue-book-btn"
-              type="button"
-              onClick={() => onBook && onBook()}
-            >
-              Đặt lịch &gt;&gt;&gt;
-            </button>
-          </div>
-
-          <div className="venue-rating-pill">
-            <FiStar />
-            <span>
-              {avgRating.toFixed(1)} ({reviews.length} đánh giá)
-            </span>
-          </div>
-
-          <div className="venue-tabs">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                className={`venue-tab ${activeTab === tab.key ? "active" : ""}`}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <div className="venue-tab-content">
-            {activeTab === "images" && (
-              <div className="images-scroll">
-                {displayImages.map((src, idx) => (
-                  <div key={src + idx} className="image-thumb">
-                    <img src={src} alt={`${name} ${idx + 1}`} />
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {activeTab === "pricing" && (
-              <table className="pricing-table">
-                <thead>
-                  <tr>
-                    <th>Khung giờ</th>
-                    <th>Giá</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {pricing.map((row, idx) => (
-                    <tr key={row.time + idx}>
-                      <td>{row.time}</td>
-                      <td>{Number(row.price).toLocaleString("vi-VN")} VND</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-
-            {activeTab === "map" && (
-              <div className="map-embed">
-                {mapEmbed ? (
-                  <iframe
-                    src={mapEmbed}
-                    style={{ border: 0 }}
-                    allowFullScreen=""
-                    loading="lazy"
-                    referrerPolicy="no-referrer-when-downgrade"
-                    title="Bản đồ"
-                  />
-                ) : (
-                  <div className="placeholder-panel">
-                    <span>Bản đồ đang cập nhật</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "reviews" && (
-              <div className="reviews-list">
-                {reviews.map((r) => (
-                  <div key={r.id} className="review-item">
-                    <div className="review-avatar">
-                      {r.avatar ? (
-                        <img src={r.avatar} alt={r.name} />
-                      ) : (
-                        <span>{r.name?.charAt(0) || "?"}</span>
-                      )}
-                    </div>
-                    <div className="review-body">
-                      <div className="review-header">
-                        <span className="review-name">{r.name}</span>
-                        <span className="review-stars">
-                          {"★".repeat(r.rating || 0)}
-                          {"☆".repeat(Math.max(0, 5 - (r.rating || 0)))}
-                        </span>
-                      </div>
-                      <div className="review-comment">{r.comment}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <button className="venue-close" type="button" onClick={onClose}>
-          ×
-        </button>
+    <Modal
+      open={!!venue}
+      onCancel={onClose}
+      footer={null}
+      width={1100}
+      centered
+      className="venue-modal-antd"
+      destroyOnClose
+    >
+      <div className="venue-hero">
+        {displayImages[0] ? (
+          <Image src={displayImages[0]} alt={name} width="100%" height={200} style={{ objectFit: "cover" }} preview={false} />
+        ) : (
+          <div className="placeholder-panel">Chưa có hình ảnh</div>
+        )}
       </div>
-    </div>
+
+      <div className="venue-header">
+        <Space size={16} align="start">
+          <Avatar size={72} src={image} icon={<UserOutlined />} />
+          <div>
+            <Title level={4} className="no-margin">
+              {name}
+            </Title>
+            <Space direction="vertical" size={4}>
+              <Space size={6}>
+                <EnvironmentOutlined />
+                <Text type="secondary">{address}</Text>
+              </Space>
+              <Space size={12} wrap>
+                <Tag icon={<ClockCircleOutlined />} color="blue">
+                  {startTime} - {endTime}
+                </Tag>
+                <Tag icon={<PhoneOutlined />} color="green">
+                  {phone}
+                </Tag>
+              </Space>
+            </Space>
+          </div>
+        </Space>
+        <Button type="primary" size="large" onClick={() => onBook && onBook()}>
+          Đặt lịch
+        </Button>
+      </div>
+
+      <div className="venue-rating">
+        <Tag color="gold" icon={<StarFilled />}>
+          {avgRating.toFixed(1)} / 5 ({reviews.length} đánh giá)
+        </Tag>
+        <Rate disabled allowHalf value={avgRating} />
+      </div>
+
+
+      <div className="venue-tabs-shell">
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+      </div>
+    </Modal>
   );
 }
