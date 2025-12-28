@@ -1,14 +1,15 @@
 import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { Upload, Input, Card, Tag } from "antd";
 import "./payingPage.css";
 
 const mockPayment = {
-  customerName: "Pham Van A",
+  customerName: "Phạm Văn A",
   phone: "0987654321",
-  venueName: "San cau long",
-  address: "Dia chi san",
+  venueName: "Phạm Quang Trường Anh",
+  address: "Số 20, Phường Quyết Tiến, Thành phố Lai Châu, Tỉnh Lai Châu",
   date: "2026-01-01",
-  selections: [{ court: "San 1", start: "15:00", end: "17:00", price: 180000 }],
+  selections: [{ court: "Sân 1", start: "15:00", end: "17:00", price: 180000 }],
   total: 180000,
 };
 
@@ -18,8 +19,8 @@ export default function PayingPage() {
   const state = location.state || {};
   const payload = state.selections && state.selections.length ? state : mockPayment;
 
-  const [customerName, setCustomerName] = useState(payload.customerName || mockPayment.customerName);
-  const [phone, setPhone] = useState(payload.phone || mockPayment.phone);
+  const [customerName] = useState(payload.customerName || mockPayment.customerName);
+  const [phone] = useState(payload.phone || mockPayment.phone);
   const venueName = payload.venueName || mockPayment.venueName;
   const address = payload.address || mockPayment.address;
   const date = payload.date || mockPayment.date;
@@ -33,6 +34,28 @@ export default function PayingPage() {
     const sorted = [...mergedSelections].sort((a, b) => a.start.localeCompare(b.start));
     return `${sorted[0].start} - ${sorted[sorted.length - 1].end}`;
   }, [mergedSelections]);
+
+  const buildInvoiceData = () => ({
+    code: `INV-${Date.now()}`,
+    status: "PAID",
+    createdAt: new Date().toLocaleString("vi-VN"),
+    customer: { name: customerName, phone },
+    venue: { name: venueName, address },
+    bookingDate: formatDateLabel(date),
+    timeRange,
+    items: mergedSelections.map((s) => ({
+      court: s.court,
+      start: s.start,
+      end: s.end,
+      price: s.price,
+      count: s.count,
+    })),
+    total,
+  });
+
+  const handleConfirm = () => {
+    navigate("/invoice", { state: { invoice: buildInvoiceData() } });
+  };
 
   return (
     <div className="paying-page">
@@ -50,30 +73,21 @@ export default function PayingPage() {
         </header>
 
         <div className="paying-grid">
-          <section className="card">
-            <h3>Thông tin người đặt</h3>
+          <Card className="card pay-card" title="Thông tin người đặt" extra={<Tag color="blue">Lấy từ tài khoản</Tag>}>
             <div className="form-grid compact">
               <FormRow label="Tên của bạn">
-                <input
-                  type="text"
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  placeholder="Nhập tên"
-                />
+                <Input value={customerName} readOnly disabled className="input-readonly" />
               </FormRow>
               <FormRow label="Số điện thoại">
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Nhập số điện thoại"
-                />
+                <Input value={phone} readOnly disabled className="input-readonly" />
               </FormRow>
+              <p className="note-text">
+                Thông tin được lấy từ hồ sơ và không thể chỉnh sửa ở bước này.
+              </p>
             </div>
-          </section>
+          </Card>
 
-          <section className="card">
-            <h3>Thông tin sân</h3>
+          <Card className="card pay-card" title="Thông tin sân" extra={<Tag color="green">Xác nhận lịch</Tag>}>
             <div className="info-grid compact">
               <InfoRow label="Tên sân" value={<span className="info-strong">{venueName}</span>} />
               <InfoRow label="Địa chỉ" value={<span className="info-muted">{address}</span>} />
@@ -90,7 +104,7 @@ export default function PayingPage() {
                 label="Chi tiết đặt"
                 value={
                   <div className="selection-scroll horizontal">
-                    <div className="selection-row">
+                    <div className="selection-row wrap">
                       {mergedSelections.map((s, idx) => (
                         <div key={s.court + s.start + idx} className="selection-card">
                           <div className="selection-title">{s.court}</div>
@@ -104,26 +118,42 @@ export default function PayingPage() {
                         </div>
                       ))}
                     </div>
+                    <p className="note-text">Các khung giờ liên tiếp được gộp lại để xem nhanh.</p>
                   </div>
                 }
               />
             </div>
-          </section>
+          </Card>
 
-          <section className="card qr-card">
+          <Card className="card pay-card qr-card" title="Thanh toán QR" bordered={true}>
             <div className="qr-placeholder">
               <span>QR Code sẽ hiển thị tại đây</span>
             </div>
-            <p className="qr-note">Quét mã để thanh toán nhanh chóng và an toàn</p>
-          </section>
+            <p className="qr-note">Quét mã để thanh toán nhanh chóng và an toàn.</p>
+            <p className="note-text subtle">
+              Nếu chưa thấy QR, vui lòng kiểm tra kết nối hoặc tải lại trang.
+            </p>
+            <div className="upload-proof">
+              <label className="form-label">Tải ảnh thanh toán thành công</label>
+              <Upload
+                action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+                listType="picture"
+                maxCount={1}
+                className="upload-input"
+              >
+                <div className="upload-trigger">Chọn hoặc kéo ảnh vào đây</div>
+              </Upload>
+              <p className="note-text">Thêm ảnh biên nhận/ảnh thanh toán.</p>
+            </div>
+          </Card>
         </div>
 
         <div className="paying-footer">
           <div className="footer-note">
-            Bấm xác nhận thanh toán, bạn đã đồng ý với các điều khoản và chính sách của chúng tôi.
+            Bấm xác nhận thanh toán nghĩa là bạn đồng ý với các điều khoản và chính sách của chúng tôi.
           </div>
-          <button className="paying-submit" type="button" onClick={() => navigate("/booking")}>
-            Xác nhận & Đặt sân
+          <button className="paying-submit" type="button" onClick={handleConfirm}>
+            Xác nhận & đặt sân
           </button>
         </div>
       </div>

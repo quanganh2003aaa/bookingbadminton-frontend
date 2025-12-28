@@ -23,6 +23,7 @@ import OwnerRevenuePage from "../pages/owner/OwnerRevenuePage";
 import OwnerAccountPage from "../pages/owner/OwnerAccountPage";
 import OwnerVenueDetailPage from "../pages/owner/OwnerVenueDetailPage";
 import OwnerCourtStatusDetailPage from "../pages/owner/OwnerCourtStatusDetailPage";
+import InvoicePage from "../pages/public/InvoicePage";
 
 const adminNavItems = [
   { to: "/admin", label: "Quản lý người dùng", end: true },
@@ -51,6 +52,7 @@ const appRoutes = [
       { index: true, element: <HomePage /> },
       { path: "booking", element: <BookingPage /> },
       { path: "paying", element: <PayingPage /> },
+      { path: "invoice", element: <InvoicePage /> },
       { path: "info-user", element: <UserInfoPage /> },
     ],
   },
