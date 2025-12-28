@@ -1,20 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { mockVenues } from "../../services/mockData";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { getFieldBookingsByDay, getFieldQuantity, getVenueDetail } from "../../services/venueService";
 import "./bookingPage.css";
 
 const COURT_COL_WIDTH = 100;
 const SLOT_WIDTH = 80;
 const slotDuration = 30; // minutes
-const selectedVenue = mockVenues?.[0];
-const operatingHours = {
-  start: selectedVenue?.startTime || "05:00",
-  end: selectedVenue?.endTime || "00:00",
-};
-const rates = [
-  { start: "05:00", end: "17:00", price: 60000 },
-  { start: "17:00", end: "00:00", price: 80000 },
-];
+const DEFAULT_HOURS = { start: "05:00", end: "23:00" };
 
 function getTodayIsoLocal() {
   const now = new Date();
@@ -24,35 +16,11 @@ function getTodayIsoLocal() {
   return `${y}-${m}-${d}`;
 }
 
-// Mock booking ranges (in a real app, fetched from BE)
-const mockBookings = [
-  {
-    name: "Sân 1",
-    bookings: [
-      { start: "05:00", end: "07:00", status: "booked" },
-      { start: "18:00", end: "20:30", status: "booked" },
-    ],
-  },
-  {
-    name: "Sân 2",
-    bookings: [{ start: "05:00", end: "07:30", status: "booked" }],
-  },
-  {
-    name: "Sân 3",
-    bookings: [{ start: "05:00", end: "08:00", status: "booked" }],
-  },
-  {
-    name: "Sân 4",
-    bookings: [{ start: "05:00", end: "10:00", status: "booked" }],
-  },
-  {
-    name: "Sân 5",
-    bookings: [
-      { start: "18:00", end: "20:00", status: "booked" },
-      { start: "20:30", end: "23:00", status: "booked" },
-    ],
-  },
-];
+const toHour = (value = "") => {
+  const parts = String(value).split(":");
+  if (parts.length >= 2) return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
+  return value;
+};
 
 const statusColors = {
   empty: "#f3f3f3",
@@ -81,7 +49,7 @@ function getTimeRange(start, end) {
   return { startMin, endMin };
 }
 
-function buildSlots({ start, end, step, lockUntilMin }) {
+function buildSlots({ start, end, step, lockUntilMin, rateRules = [] }) {
   const { startMin, endMin } = getTimeRange(start, end);
   const nowMin = typeof lockUntilMin === "number" ? lockUntilMin : -Infinity;
 
@@ -93,14 +61,14 @@ function buildSlots({ start, end, step, lockUntilMin }) {
       baseStatus: "empty",
       selected: false,
       locked: t < nowMin,
-      price: findPriceForTime(t),
+      price: findPriceForTime(t, rateRules),
     });
   }
   return slots;
 }
 
-function findPriceForTime(minute) {
-  for (const rule of rates) {
+function findPriceForTime(minute, rateRules = []) {
+  for (const rule of rateRules) {
     const start = parseTime(rule.start);
     let end = parseTime(rule.end);
     if (end <= start) end += 24 * 60; // handle overnight rate ending at 00:00
@@ -126,24 +94,37 @@ function applyBookings(slots, bookings) {
 
 export default function BookingPage() {
   const todayIso = getTodayIsoLocal();
+  const [searchParams] = useSearchParams();
+  const fieldId = searchParams.get("fieldId") || "";
+  const [operatingHours, setOperatingHours] = useState(DEFAULT_HOURS);
+  const [rates, setRates] = useState([]);
+  const [courtsCount, setCourtsCount] = useState(1);
+  const [bookings, setBookings] = useState([]);
+  const [error, setError] = useState("");
+  const [loadingDetail, setLoadingDetail] = useState(false);
+  const [loadingBookings, setLoadingBookings] = useState(false);
+  const [loadingQuantity, setLoadingQuantity] = useState(false);
+  const [fieldInfo, setFieldInfo] = useState(null);
   const [selectedDate, setSelectedDate] = useState(todayIso);
   const gridScrollRef = useRef(null);
   const navigate = useNavigate();
 
-  const [baseSlots, setBaseSlots] = useState(() =>
-    buildSlots({
-      start: operatingHours.start,
-      end: operatingHours.end,
+  const [baseSlots, setBaseSlots] = useState(() => {
+    const lockUntil = calcLockUntil(
+      slotDuration,
+      todayIso,
+      todayIso,
+      DEFAULT_HOURS.start,
+      DEFAULT_HOURS.end
+    );
+    return buildSlots({
+      start: DEFAULT_HOURS.start,
+      end: DEFAULT_HOURS.end,
       step: slotDuration,
-      lockUntilMin: calcLockUntil(
-        slotDuration,
-        todayIso,
-        todayIso,
-        operatingHours.start,
-        operatingHours.end
-      ),
-    })
-  );
+      lockUntilMin: lockUntil,
+      rateRules: [],
+    });
+  });
 
   const gridTemplate = useMemo(
     () =>
@@ -155,12 +136,49 @@ export default function BookingPage() {
     [baseSlots.length]
   );
 
-  const [courts, setCourts] = useState(() =>
-    mockBookings.map((court) => ({
-      name: court.name,
-      slots: applyBookings(baseSlots, court.bookings),
-    }))
-  );
+  const [courts, setCourts] = useState([]);
+
+  useEffect(() => {
+    if (!fieldId) {
+      setError("Khong tim thay fieldId de dat lich.");
+      return;
+    }
+    setLoadingDetail(true);
+    setError("");
+    (async () => {
+      try {
+        const res = await getVenueDetail(fieldId);
+        const detail = res?.result || res || {};
+        setFieldInfo(detail);
+        const slots = Array.isArray(detail.timeSlots) ? detail.timeSlots : [];
+        const rateRules = slots.map((slot) => ({
+          start: toHour(slot.startHour || slot.startTime || ""),
+          end: toHour(slot.endHour || slot.endTime || ""),
+          price: slot.price || 0,
+        }));
+        setRates(rateRules);
+        const startHour =
+          rateRules[0]?.start || toHour(detail.startTime || DEFAULT_HOURS.start);
+        const endHour =
+          rateRules[rateRules.length - 1]?.end ||
+          toHour(detail.endTime || DEFAULT_HOURS.end);
+        setOperatingHours({
+          start: startHour || DEFAULT_HOURS.start,
+          end: endHour || DEFAULT_HOURS.end,
+        });
+        setCourtsCount((prev) => {
+          const qty = detail.quantity ?? detail.courts;
+          if (qty && Number(qty) > 0) return Number(qty);
+          return prev || 1;
+        });
+      } catch (err) {
+        console.error(err);
+        setError("Khong the tai thong tin san. Vui long thu lai.");
+      } finally {
+        setLoadingDetail(false);
+      }
+    })();
+  }, [fieldId]);
 
   useEffect(() => {
     const lockUntil = calcLockUntil(
@@ -175,15 +193,64 @@ export default function BookingPage() {
       end: operatingHours.end,
       step: slotDuration,
       lockUntilMin: lockUntil,
+      rateRules: rates,
     });
     setBaseSlots(slots);
-    setCourts(
-      mockBookings.map((court) => ({
-        name: court.name,
-        slots: applyBookings(slots, court.bookings),
-      }))
-    );
-  }, [selectedDate, todayIso]);
+  }, [selectedDate, todayIso, operatingHours, rates]);
+
+  useEffect(() => {
+    if (!fieldId) return;
+    setLoadingBookings(true);
+    setError("");
+    (async () => {
+      try {
+        const res = await getFieldBookingsByDay(fieldId, selectedDate);
+        const list = Array.isArray(res?.result) ? res.result : [];
+        const mapped = list
+          .map((b, idx) => ({
+            start: toHour(b.startHour || b.start || ""),
+            end: toHour(b.endHour || b.end || ""),
+            status: "booked",
+            id: b.id || idx,
+          }))
+          .filter((b) => b.start && b.end);
+        setBookings(mapped);
+      } catch (err) {
+        console.error(err);
+        setError("Khong the tai lich san trong ngay.");
+        setBookings([]);
+      } finally {
+        setLoadingBookings(false);
+      }
+    })();
+  }, [fieldId, selectedDate]);
+
+  useEffect(() => {
+    const template = applyBookings(baseSlots, bookings);
+    const count = Math.max(1, Number(courtsCount) || 1);
+    const courtsData = Array.from({ length: count }, (_, i) => ({
+      name: `Sân ${i + 1}`,
+      slots: template.map((s) => ({ ...s, selected: false })),
+    }));
+    setCourts(courtsData);
+  }, [baseSlots, bookings, courtsCount]);
+
+  useEffect(() => {
+    if (!fieldId) return;
+    setLoadingQuantity(true);
+    (async () => {
+      try {
+        const res = await getFieldQuantity(fieldId);
+        const qty = Number(res?.result?.quantity ?? res?.quantity ?? 0);
+        setCourtsCount(qty > 0 ? qty : 1);
+      } catch (err) {
+        console.error(err);
+        setCourtsCount((prev) => prev || 1);
+      } finally {
+        setLoadingQuantity(false);
+      }
+    })();
+  }, [fieldId]);
 
   useEffect(() => {
     if (selectedDate !== todayIso) return;
@@ -235,9 +302,28 @@ export default function BookingPage() {
 
   const totalPrice = selectedSlots.reduce((sum, p) => sum + p, 0);
 
+  const selectionDetails = useMemo(
+    () =>
+      courts.flatMap((court) =>
+        court.slots
+          .filter((s) => s.selected)
+          .map((s) => ({
+            court: court.name,
+            start: s.label,
+            end: formatTimeLabel(s.minutes + slotDuration),
+            price: s.price,
+          }))
+      ),
+    [courts]
+  );
+
   return (
     <div className="booking-page">
       <div className="booking-card">
+        {error && <div className="error-message">{error}</div>}
+        {loadingDetail && <div className="loading-more">Đang tải thông tin sân...</div>}
+        {loadingBookings && <div className="loading-more">Đang tải lịch trong ngày...</div>}
+        {loadingQuantity && <div className="loading-more">Đang tải số sân...</div>}
         <div className="booking-legend">
           <div className="legend-left">
             <LegendItem color={statusColors.empty} label="Trống" />
@@ -258,7 +344,7 @@ export default function BookingPage() {
               <span role="img" aria-label="location">
                 📍
               </span>
-              <span>Sân cầu lông 12 Khuất Duy Tiến</span>
+              <span>{fieldInfo?.name || "San cau long"}</span>
             </div>
           </div>
         </div>
@@ -329,7 +415,19 @@ export default function BookingPage() {
           <button
             className="booking-action"
             type="button"
-            onClick={() => navigate("/paying")}
+            disabled={!selectionDetails.length}
+            onClick={() =>
+              navigate("/paying", {
+                state: {
+                  fieldId,
+                  date: selectedDate,
+                  venueName: fieldInfo?.name || "San cau long",
+                  address: fieldInfo?.address || "",
+                  selections: selectionDetails,
+                  total: totalPrice,
+                },
+              })
+            }
           >
             Tiến hành đặt sân
           </button>
