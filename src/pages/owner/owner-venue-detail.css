@@ -134,8 +134,7 @@
 .slot-row {
   display: grid;
   grid-template-columns: 1.05fr 1.05fr 1fr 60px;
-  gap: 10px;
-  padding: 12px 14px;
+  padding: 8px;
   border: 1px solid var(--color-gray-200);
   border-radius: 12px;
   background: var(--color-gray-50);
@@ -146,10 +145,10 @@
   width: 100%;
   border: 1px solid var(--color-gray-200);
   border-radius: 8px;
-  padding: 12px 12px;
+  padding: 12px 0 12px 12px;
   background: var(--color-gray-100);
   color: var(--color-text-primary);
-  font-weight: 700;
+  font-weight: 400;
   min-height: 44px;
 }
 
@@ -168,7 +167,6 @@
 .slot-time {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
-  gap: 6px;
   align-items: center;
 }
 

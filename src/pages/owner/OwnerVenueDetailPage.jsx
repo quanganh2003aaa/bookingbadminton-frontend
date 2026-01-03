@@ -1,129 +1,20 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ownerVenueDetails } from "../../services/ownerMockData";
-import { ENDPOINTS, API_BASE } from "../../api/endpoints";
+import { ENDPOINTS } from "../../api/endpoints";
+import Notice from "../../components/common/Notice";
+import {
+  activeToLabel,
+  formatCurrency,
+  labelToActive,
+  minutesToTime,
+  normalizeHour,
+  normalizeImageSrc,
+  parseTimeToMinutes,
+  statusClass,
+  STATUS_OPTIONS,
+} from "./utils/venueDetailUtils";
 import "./owner-venue-detail.css";
-
-const statusClass = (status = "") => {
-  const lower = status.toLowerCase();
-  return lower.includes("ngừng") || lower.includes("ngung") ? "status-stop" : "status-ok";
-};
-
-const activeToLabel = (active = "") => {
-  const upper = active.toUpperCase();
-  if (upper === "ACTIVE") return "Hoạt động";
-  if (upper === "INACTIVE") return "Ngừng hoạt động";
-  return active || "Chưa rõ";
-};
-
-const labelToActive = (label = "") => {
-  const upper = label.toUpperCase();
-  if (upper.includes("NGỪNG") || upper.includes("NGUNG")) return "INACTIVE";
-  return "ACTIVE";
-};
-
-const parseTimeToMinutes = (timeStr) => {
-  const [h, m] = timeStr.split(":").map(Number);
-  return h * 60 + m;
-};
-
-const minutesToTime = (minutes) => {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-};
-
-const formatCurrency = (value) => {
-  const digits = String(value || "").replace(/\D/g, "");
-  return digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
-};
-
-const API_HOST = (
-  import.meta.env?.VITE_API_BASE ||
-  API_BASE ||
-  ENDPOINTS.API_HOST ||
-  ""
-)
-  .replace(/\/api$/, "")
-  .replace(/\/$/, "");
-
-const CLIENT_ORIGIN = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "";
-
-const withBase = (path = "") => {
-  const base = CLIENT_ORIGIN || API_HOST || "";
-  if (!base) return path.startsWith("/") ? path : `/${path}`;
-  return `${base}${path.startsWith("/") ? path : `/${path}`}`;
-};
-
-const Notice = ({ type = "info", message }) => {
-  if (!message) return null;
-  const palette = {
-    info: { bg: "#e8f4ff", color: "#0b63ce", border: "#b5d7ff" },
-    success: { bg: "#e7f6ed", color: "#1b7a3d", border: "#bde5c4" },
-    error: { bg: "#fdecea", color: "#a52a2a", border: "#f5c6c6" },
-  };
-  const tone = palette[type] || palette.info;
-  return (
-    <div
-      style={{
-        background: tone.bg,
-        color: tone.color,
-        border: `1px solid ${tone.border}`,
-        padding: "12px 14px",
-        borderRadius: 10,
-        marginBottom: 12,
-      }}
-    >
-      {message}
-    </div>
-  );
-};
-
-const normalizeHour = (value = "") => {
-  if (!value) return "";
-  const parts = value.split(":");
-  if (parts.length >= 2) return `${parts[0].padStart(2, "0")}:${parts[1].padStart(2, "0")}`;
-  return value;
-};
-
-const normalizeImageSrc = (value = "") => {
-  if (!value) return "";
-  if (value.startsWith("http://") || value.startsWith("https://")) return value;
-  const normalized = value.replace(/\\\\/g, "/").replace(/\\/g, "/");
-  const lower = normalized.toLowerCase();
-
-  const uploadFieldsIdx = lower.lastIndexOf("/upload/fields/");
-  if (uploadFieldsIdx !== -1) {
-    const rel = normalized.slice(uploadFieldsIdx);
-    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
-  }
-
-  const uploadFromSrcIdx = lower.indexOf("/src/assets/image/upload/");
-  if (uploadFromSrcIdx !== -1) {
-    const rel = normalized.slice(uploadFromSrcIdx);
-    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
-  }
-
-  const uploadIdx = lower.indexOf("/upload/");
-  if (uploadIdx !== -1) {
-    const rel = normalized.slice(uploadIdx);
-    return encodeURI(withBase(rel));
-  }
-
-  const publicIdx = lower.indexOf("/public/");
-  if (publicIdx !== -1) {
-    const rel = normalized.slice(publicIdx + "/public".length);
-    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
-  }
-
-  const srcIdx = lower.indexOf("/src/");
-  if (srcIdx !== -1) {
-    const rel = normalized.slice(srcIdx);
-    return encodeURI(withBase(rel.startsWith("/") ? rel : `/${rel}`));
-  }
-
-  return encodeURI(withBase(normalized.startsWith("/") ? normalized : `/${normalized}`));
-};
 
 export default function OwnerVenueDetailPage() {
   const { id } = useParams();
@@ -163,8 +54,6 @@ export default function OwnerVenueDetailPage() {
   const [slotsLoaded, setSlotsLoaded] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  const statusOptions = ["Hoạt động", "Ngừng hoạt động"];
-
   useEffect(() => {
     const ownerId = localStorage.getItem("ownerId") || "";
     if (!ownerId) {
@@ -175,12 +64,10 @@ export default function OwnerVenueDetailPage() {
       setLoading(true);
       setError("");
       try {
-        const params = new URLSearchParams();
-        params.append("ownerId", ownerId);
         const url =
-          typeof ENDPOINTS.ownerFieldDetail === "function"
-            ? `${ENDPOINTS.ownerFieldDetail(id)}?${params.toString()}`
-            : `${ENDPOINTS.ownerFields}/${id}?${params.toString()}`;
+          typeof ENDPOINTS.ownerFieldDetailWithOwner === "function"
+            ? ENDPOINTS.ownerFieldDetailWithOwner(id, ownerId)
+            : `${ENDPOINTS.ownerFields}/${id}?ownerId=${ownerId}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error("Không thể tải chi tiết sân.");
         const data = await res.json().catch(() => ({}));
@@ -320,12 +207,10 @@ export default function OwnerVenueDetailPage() {
         setError("");
         setInfoMessage("");
         try {
-          const params = new URLSearchParams();
-          params.append("ownerId", ownerId);
           const url =
-            typeof ENDPOINTS.ownerFieldDetail === "function"
-              ? `${ENDPOINTS.ownerFieldDetail(id)}?${params.toString()}`
-              : `${ENDPOINTS.ownerFields}/${id}?${params.toString()}`;
+            typeof ENDPOINTS.ownerFieldUpdateWithOwner === "function"
+              ? ENDPOINTS.ownerFieldUpdateWithOwner(id, ownerId)
+              : `${ENDPOINTS.ownerFields}/${id}?ownerId=${ownerId}`;
           const payload = {
             ownerId,
             name: form.name.trim(),
@@ -592,7 +477,7 @@ export default function OwnerVenueDetailPage() {
                   onChange={handleChange("status")}
                   className={`status-select ${statusClass(form.status)}`}
                 >
-                  {statusOptions.map((opt) => (
+                  {STATUS_OPTIONS.map((opt) => (
                     <option key={opt} value={opt}>
                       {opt}
                     </option>
@@ -775,14 +660,17 @@ export default function OwnerVenueDetailPage() {
             onChange={handleFilesSelected}
           />
         </div>
-        <Notice type={uploading ? "info" : "success"} message={uploading ? "Đang tải ảnh..." : uploadMessage} />
+        <Notice
+          type={uploading ? "info" : "success"}
+          message={uploading ? "Đang tải ảnh..." : uploadMessage}
+        />
         <div className="gallery-strip">
           {imagesLoaded && images.length === 0 && (
-            <div className="gallery-item placeholder">Chua co anh duoc tra ve</div>
+            <div className="gallery-item placeholder">Chưa có ảnh được trả về</div>
           )}
           {images?.map((src, idx) => (
             <div className="gallery-item" key={src + idx}>
-              <img src={src} alt={`Anh san ${idx + 1}`} />
+              <img src={src} alt={`Ảnh sân ${idx + 1}`} />
             </div>
           ))}
         </div>
