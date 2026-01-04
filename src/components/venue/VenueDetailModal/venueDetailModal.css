@@ -10,31 +10,15 @@
   padding: 0;
   border-radius: 16px;
   overflow: hidden;
-  height: 90vh;
-  max-height: 90vh;
+  min-height: 60vh;
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.16);
 }
 
 .venue-modal-antd .ant-modal-body {
   padding: 0 0 16px;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.venue-hero {
-  width: 100%;
-  height: 200px;
-  background: #f3f4f6;
-  overflow: hidden;
-}
-
-.venue-hero img,
-.venue-hero .ant-image {
-  width: 100%;
-  height: 200px;
-  object-fit: cover;
+  gap: 12px;
 }
 
 .venue-header {
@@ -49,7 +33,7 @@
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 0 20px 12px;
+  padding: 0 20px 8px;
 }
 
 .venue-desc {
@@ -59,23 +43,13 @@
   padding: 4px 10px;
 }
 
-.images-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 12px;
-}
-
-.image-card {
-  border-radius: 10px;
-  overflow: hidden;
-}
-
 .map-wrapper {
   width: 100%;
-  height: 360px;
+  height: 320px;
   border: 1px solid var(--v-border);
   border-radius: 12px;
   overflow: hidden;
+  background: #f8fafc;
 }
 
 .map-wrapper iframe {
@@ -84,39 +58,45 @@
   border: none;
 }
 
-.venue-modal-antd .ant-tabs {
-  padding: 0 0;
-}
-
-.venue-modal-antd .ant-tabs-nav {
-  margin: 8px 0;
-  padding: 0 20px;
-}
-
-.venue-modal-antd .ant-tabs-content-holder {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: 0 20px;
-}
-
-.venue-modal-antd .ant-tabs-content {
-  height: 100%;
-}
-
-.venue-modal-antd .ant-tabs-tabpane {
-  height: 100%;
-  overflow: auto;
-  padding-bottom: 8px;
-}
-
 .venue-tabs-shell {
-  flex: 1;
-  min-height: 0;
+  padding: 0 20px 12px;
+}
+
+.venue-tabs-shell .ant-tabs-nav {
+  margin: 0 0 8px;
+}
+
+.venue-tabs-shell .ant-tabs-tab {
+  font-weight: 600;
+  padding: 10px 16px;
+}
+
+.venue-tabs-shell .ant-tabs-content-holder {
+  background: transparent;
+}
+
+.venue-tabs-shell .ant-tabs-tabpane {
+  padding: 0;
+}
+
+.tab-panel {
+  padding: 12px 0;
+}
+
+.section-header {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  padding: 0 20px;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.table-compact .ant-table {
+  background: transparent;
+}
+
+.table-compact .ant-table-thead > tr > th {
+  background: #eef2ff;
+  font-weight: 700;
 }
 
 .placeholder-panel {

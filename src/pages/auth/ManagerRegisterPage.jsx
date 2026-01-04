@@ -109,10 +109,11 @@ export default function ManagerRegisterPage() {
   };
 
   const handleVenueNext = async (vals) => {
-    setVenueValues(vals);
-    if (!vals.imgQr && uploads[0]?.url) {
-      setVenueValues((prev) => ({ ...prev, imgQr: uploads[0].url }));
-    }
+    setVenueValues((prev) => ({
+      ...prev,
+      ...vals,
+      imgQr: vals.imgQr || uploads[0]?.dataUrl || uploads[0]?.url || prev.imgQr,
+    }));
     await sendPasscode();
   };
 
@@ -141,7 +142,7 @@ export default function ManagerRegisterPage() {
           address: venueValues.address,
           mobileContact: venueValues.phone,
           linkMap: venueValues.mapLink,
-          imgQr: venueValues.imgQr || uploads[0]?.url || "",
+          imgQr: venueValues.imgQr || uploads[0]?.dataUrl || uploads[0]?.url || "",
         },
       };
 
@@ -155,11 +156,16 @@ export default function ManagerRegisterPage() {
         throw new Error(data.message || "Đăng ký quản lý thất bại.");
       }
 
+      const successMessage = isOwnerContext
+        ? "Đăng ký thêm sân thành công! Đang chuyển về trang chủ owner..."
+        : "Đăng ký thành công! Đang chuyển đến đăng nhập...";
       setConfirmState({
         ...blankState,
-        success: "Đăng ký thành công! Đang chuyển đến đăng nhập...",
+        success: successMessage,
       });
-      setTimeout(() => window.location.assign("/owner-login"), 900);
+      setTimeout(() => {
+        window.location.assign(isOwnerContext ? "/owner" : "/owner-login");
+      }, 900);
     } catch (err) {
       setConfirmState({ loading: false, error: err.message, success: "" });
     }

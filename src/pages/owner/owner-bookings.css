@@ -1,0 +1,164 @@
+@import "../../styles/variables.css";
+
+.owner-bookings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.owner-bookings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.owner-bookings-header .filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.owner-bookings-header input[type="date"],
+.owner-bookings-header select {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border-light);
+  padding: 0 10px;
+}
+
+.owner-bookings-card {
+  background: #fff;
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.venue-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.venue-card {
+  border: 1px solid var(--color-border-light);
+  border-radius: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  cursor: pointer;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.venue-card:hover {
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.venue-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.venue-card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.venue-card-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+}
+
+.venue-status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #eef2ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.bookings-table {
+  display: grid;
+  gap: 6px;
+}
+
+.table-head,
+.table-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.7fr 1.4fr 1fr 1fr;
+  align-items: center;
+  padding: 10px 8px;
+  border-radius: 10px;
+}
+
+.table-head {
+  background: #f6f8fb;
+  font-weight: 800;
+  color: var(--color-text-secondary);
+}
+
+.table-row {
+  background: #fff;
+  border: 1px solid var(--color-border-light);
+}
+
+.detail-table .table-head,
+.detail-table .table-row {
+  grid-template-columns: 1fr 1.2fr 1fr 1fr;
+}
+
+.cell-strong {
+  font-weight: 700;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 12px;
+}
+
+.status-ok {
+  background: #e1f5e8;
+  color: #1a7a2e;
+  border: 1px solid #9fd7b3;
+}
+
+.status-wait {
+  background: #fff7e6;
+  color: #b86d00;
+  border: 1px solid #f2c87e;
+}
+
+.status-bad {
+  background: #fde3e3;
+  color: #c0392b;
+  border: 1px solid #f0b7b7;
+}
+
+.owner-bookings-empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 14px 0;
+}
+
+@media (max-width: 780px) {
+  .table-head,
+  .table-row {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 6px;
+  }
+}

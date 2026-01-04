@@ -299,6 +299,10 @@
   color: #b86d00;
 }
 
+.status-pill {
+  border: 1px solid var(--color-border-light);
+}
+
 .detail-actions {
   margin-top: 8px;
   display: flex;

@@ -24,7 +24,7 @@ export const ENDPOINTS = {
   ownerFieldDetailWithOwner: (id, ownerId) =>
     `${API_BASE}/fields/owner/${encodeURIComponent(id)}?ownerId=${encodeURIComponent(ownerId)}`,
   ownerFieldUpdateWithOwner: (id, ownerId) =>
-    `${API_BASE}/owner/fields/${encodeURIComponent(id)}?ownerId=${encodeURIComponent(ownerId)}`,
+    `${API_BASE}/fields/owner/${encodeURIComponent(id)}?ownerId=${encodeURIComponent(ownerId)}`,
   ownerFieldBookings: `${API_BASE}/fields/owner/bookings`,
   timeSlotsField: (id) => `${API_BASE}/time-slots/field/${encodeURIComponent(id)}`,
   fieldImageUpload: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images/upload`,

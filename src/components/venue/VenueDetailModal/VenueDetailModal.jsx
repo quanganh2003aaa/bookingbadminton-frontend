@@ -1,18 +1,5 @@
 import React, { useMemo, useState } from "react";
-import {
-  Modal,
-  Tabs,
-  Image,
-  Avatar,
-  Tag,
-  Button,
-  Rate,
-  List,
-  Table,
-  Typography,
-  Space,
-  Card,
-} from "antd";
+import { Modal, Image, Avatar, Tag, Button, Rate, List, Table, Typography, Space, Tabs } from "antd";
 import {
   EnvironmentOutlined,
   ClockCircleOutlined,
@@ -25,23 +12,20 @@ import "./venueDetailModal.css";
 const { Title, Text } = Typography;
 
 export default function VenueDetailModal({ venue, onClose, onBook }) {
-  const [activeTab, setActiveTab] = useState("images");
+  const [activeTab, setActiveTab] = useState("pricing");
   if (!venue) return null;
 
   const {
     name,
     address,
-    startTime,
-    endTime,
-    phone,
-    image,
-    mapEmbed,
-    images = [],
-    pricing = [],
-    reviews = [],
-  } = venue;
-
-  const displayImages = useMemo(() => (images.length ? images : image ? [image] : []), [images, image]);
+  startTime,
+  endTime,
+  phone,
+  image,
+  mapEmbed,
+  pricing = [],
+  reviews = [],
+} = venue;
 
   const avgRating = useMemo(() => {
     if (!reviews.length) return 0;
@@ -60,81 +44,84 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
     },
   ];
 
-  const tabItems = [
-    {
-      key: "images",
-      label: "Hình ảnh",
-      children: (
-        <Image.PreviewGroup>
-          <div className="images-grid">
-            {displayImages.length ? (
-              displayImages.map((src, idx) => (
-                <Card key={src + idx} className="image-card" cover={<Image src={src} alt={`${name} ${idx + 1}`} />}></Card>
-              ))
-            ) : (
-              <div className="placeholder-panel">Chưa có hình ảnh</div>
-            )}
-          </div>
-        </Image.PreviewGroup>
-      ),
-    },
+  const tabs = [
     {
       key: "pricing",
-      label: "Giá sân",
+      label: "Bảng giá",
       children: (
-        <Table
-          columns={pricingColumns}
-          dataSource={(pricing || []).map((p, idx) => ({ key: idx, ...p }))}
-          pagination={false}
-          size="middle"
-        />
-      ),
-    },
-    {
-      key: "map",
-      label: "Bản đồ",
-      children: mapEmbed ? (
-        <div className="map-wrapper">
-          <iframe
-            src={mapEmbed}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Bản đồ"
+        <div className="tab-panel">
+          <div className="section-header">
+            <Title level={5} className="no-margin">
+              Bảng giá
+            </Title>
+            <Text type="secondary">Các khung giờ và giá áp dụng</Text>
+          </div>
+          <Table
+            columns={pricingColumns}
+            dataSource={(pricing || []).map((p, idx) => ({ key: idx, ...p }))}
+            pagination={false}
+            size="middle"
+            className="table-compact"
           />
         </div>
-      ) : (
-        <div className="placeholder-panel">Bản đồ đang được cập nhật</div>
       ),
     },
     {
       key: "reviews",
       label: "Đánh giá",
       children: (
-        <List
-          dataSource={reviews}
-          locale={{ emptyText: "Chưa có đánh giá" }}
-          renderItem={(r) => (
-            <List.Item className="review-item">
-              <List.Item.Meta
-                avatar={
-                  r.avatar ? (
-                    <Avatar src={r.avatar} />
-                  ) : (
-                    <Avatar>{(r.name || "?").charAt(0)}</Avatar>
-                  )
-                }
-                title={
-                  <Space align="center">
-                    <Text strong>{r.name}</Text>
-                    <Rate disabled allowHalf defaultValue={r.rating || 0} />
-                  </Space>
-                }
-                description={<Text type="secondary">{r.comment}</Text>}
+        <div className="tab-panel">
+          <div className="section-header">
+            <Title level={5} className="no-margin">
+              Đánh giá
+            </Title>
+            <Text type="secondary">{reviews.length ? `${reviews.length} đánh giá` : "Chưa có đánh giá"}</Text>
+          </div>
+          <List
+            dataSource={reviews}
+            locale={{ emptyText: "Chưa có đánh giá" }}
+            renderItem={(r) => (
+              <List.Item className="review-item">
+                <List.Item.Meta
+                  avatar={r.avatar ? <Avatar src={r.avatar} /> : <Avatar>{(r.name || "?").charAt(0)}</Avatar>}
+                  title={
+                    <Space align="center">
+                      <Text strong>{r.name}</Text>
+                      <Rate disabled allowHalf defaultValue={r.rating || 0} />
+                    </Space>
+                  }
+                  description={<Text type="secondary">{r.comment}</Text>}
+                />
+              </List.Item>
+            )}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "map",
+      label: "Bản đồ",
+      children: (
+        <div className="tab-panel">
+          <div className="section-header">
+            <Title level={5} className="no-margin">
+              Bản đồ
+            </Title>
+          </div>
+          {mapEmbed ? (
+            <div className="map-wrapper">
+              <iframe
+                src={mapEmbed}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Bản đồ sân"
               />
-            </List.Item>
+            </div>
+          ) : (
+            <div className="placeholder-panel">Bản đồ đang được cập nhật</div>
           )}
-        />
+        </div>
       ),
     },
   ];
@@ -148,15 +135,8 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
       centered
       className="venue-modal-antd"
       destroyOnClose
+      style={{ top: 80 }}
     >
-      <div className="venue-hero">
-        {displayImages[0] ? (
-          <Image src={displayImages[0]} alt={name} width="100%" height={200} style={{ objectFit: "cover" }} preview={false} />
-        ) : (
-          <div className="placeholder-panel">Chưa có hình ảnh</div>
-        )}
-      </div>
-
       <div className="venue-header">
         <Space size={16} align="start">
           <Avatar size={72} src={image} icon={<UserOutlined />} />
@@ -192,9 +172,8 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
         <Rate disabled allowHalf value={avgRating} />
       </div>
 
-
       <div className="venue-tabs-shell">
-        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabItems} />
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={tabs} />
       </div>
     </Modal>
   );

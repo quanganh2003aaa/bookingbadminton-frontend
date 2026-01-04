@@ -30,18 +30,21 @@ export default function ManagerVenueForm({
   const handleFiles = (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
-    onUploadsChange &&
-      onUploadsChange(() => {
-        const file = files[0];
-        return [
+    const file = files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      onUploadsChange &&
+        onUploadsChange(() => [
           {
             name: file.name,
             status: "Đã tải xong",
-            url: URL.createObjectURL(file),
+            url: reader.result,
             file,
+            dataUrl: reader.result,
           },
-        ];
-      });
+        ]);
+    };
+    reader.readAsDataURL(file);
     e.target.value = "";
   };
 

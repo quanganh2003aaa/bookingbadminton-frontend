@@ -22,13 +22,6 @@ const toHour = (value = "") => {
   return value;
 };
 
-const statusColors = {
-  empty: "#f3f3f3",
-  locked: "#a0a4ab",
-  booked: "#c62e2e",
-  selected: "#0a5f26",
-};
-
 function parseTime(str) {
   const [h, m] = str.split(":").map(Number);
   return h * 60 + m;
@@ -78,6 +71,13 @@ function findPriceForTime(minute, rateRules = []) {
   return 0;
 }
 
+const statusColors = {
+  empty: "#f3f3f3",
+  locked: "#a0a4ab",
+  booked: "#c62e2e",
+  selected: "#0a5f26",
+};
+
 function applyBookings(slots, bookings) {
   const next = slots.map((s) => ({ ...s }));
   bookings.forEach((b) => {
@@ -99,7 +99,7 @@ export default function BookingPage() {
   const [operatingHours, setOperatingHours] = useState(DEFAULT_HOURS);
   const [rates, setRates] = useState([]);
   const [courtsCount, setCourtsCount] = useState(1);
-  const [bookings, setBookings] = useState([]);
+  const [bookingsByCourt, setBookingsByCourt] = useState([]);
   const [error, setError] = useState("");
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -198,6 +198,15 @@ export default function BookingPage() {
     setBaseSlots(slots);
   }, [selectedDate, todayIso, operatingHours, rates]);
 
+  const toSlotTime = (value = "") => {
+    if (value.includes("T")) {
+      const timePart = value.split("T")[1] || "";
+      const [h = "00", m = "00"] = timePart.split(":");
+      return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+    }
+    return toHour(value);
+  };
+
   useEffect(() => {
     if (!fieldId) return;
     setLoadingBookings(true);
@@ -205,20 +214,27 @@ export default function BookingPage() {
     (async () => {
       try {
         const res = await getFieldBookingsByDay(fieldId, selectedDate);
-        const list = Array.isArray(res?.result) ? res.result : [];
-        const mapped = list
-          .map((b, idx) => ({
-            start: toHour(b.startHour || b.start || ""),
-            end: toHour(b.endHour || b.end || ""),
-            status: "booked",
-            id: b.id || idx,
-          }))
-          .filter((b) => b.start && b.end);
-        setBookings(mapped);
+        const payload = res?.result || {};
+        const subFields = Array.isArray(payload.subFields) ? payload.subFields : [];
+        if (subFields.length) setCourtsCount(subFields.length);
+
+        const mappedByCourt = subFields.map((sf, idx) => {
+          const list = Array.isArray(sf.bookings) ? sf.bookings : [];
+          return list
+            .map((b, j) => ({
+              start: toSlotTime(b.startHour || b.start || ""),
+              end: toSlotTime(b.endHour || b.end || ""),
+              status: "booked",
+              id: b.bookingId || b.id || `${idx}-${j}`,
+            }))
+            .filter((b) => b.start && b.end);
+        });
+
+        setBookingsByCourt(mappedByCourt);
       } catch (err) {
         console.error(err);
         setError("Khong the tai lich san trong ngay.");
-        setBookings([]);
+        setBookingsByCourt([]);
       } finally {
         setLoadingBookings(false);
       }
@@ -226,14 +242,18 @@ export default function BookingPage() {
   }, [fieldId, selectedDate]);
 
   useEffect(() => {
-    const template = applyBookings(baseSlots, bookings);
-    const count = Math.max(1, Number(courtsCount) || 1);
-    const courtsData = Array.from({ length: count }, (_, i) => ({
-      name: `Sân ${i + 1}`,
-      slots: template.map((s) => ({ ...s, selected: false })),
-    }));
+    const countFromBookings = bookingsByCourt.length;
+    const count = countFromBookings || Math.max(1, Number(courtsCount) || 1);
+    const courtsData = Array.from({ length: count }, (_, i) => {
+      const courtBookings = bookingsByCourt[i] || [];
+      const template = applyBookings(baseSlots, courtBookings);
+      return {
+        name: `Sân ${i + 1}`,
+        slots: template.map((s) => ({ ...s, selected: false })),
+      };
+    });
     setCourts(courtsData);
-  }, [baseSlots, bookings, courtsCount]);
+  }, [baseSlots, bookingsByCourt, courtsCount]);
 
   useEffect(() => {
     if (!fieldId) return;

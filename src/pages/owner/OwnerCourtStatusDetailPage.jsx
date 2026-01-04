@@ -1,140 +1,95 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useState } from "react";
 import TimeGrid, { Legend } from "../../components/owner/TimeGrid";
 import "../../components/owner/time-grid.css";
 import "./owner-status-detail.css";
+import { ENDPOINTS } from "../../api/endpoints";
 
-const mockCourtStatusDetail = {
-  id: 1,
-  date: "2025-11-11",
-  courts: [
-    {
-      name: "Sân 1",
-      bookings: [
-        { start: "07:00", end: "10:00", status: "booked" },
-        { start: "13:30", end: "15:30", status: "booked" },
-      ],
-    },
-    {
-      name: "Sân 2",
-      bookings: [
-        { start: "08:00", end: "10:00", status: "booked" },
-        { start: "15:30", end: "17:30", status: "booked" },
-      ],
-    },
-    {
-      name: "Sân 3",
-      bookings: [
-        { start: "06:00", end: "08:00", status: "locked" },
-        { start: "17:30", end: "19:30", status: "booked" },
-      ],
-    },
-    {
-      name: "Sân 4",
-      bookings: [{ start: "05:00", end: "09:00", status: "locked" }],
-    },
-    {
-      name: "Sân 5",
-      bookings: [
-        { start: "18:00", end: "20:00", status: "booked" },
-        { start: "20:00", end: "22:00", status: "booked" },
-      ],
-    },
-  ],
-  tickets: [
-    {
-      id: 1,
-      time: "07:00 - 10:00",
-      phone: "0987654321",
-      masked: "*****321",
-      customer: "Phạm Văn A",
-      paid: true,
-      amount: 200000,
-      court: "Sân 1",
-      date: "2025-11-11",
-    },
-    {
-      id: 2,
-      time: "13:30 - 15:30",
-      phone: "0911222333",
-      masked: "*****233",
-      customer: "Nguyễn Thị B",
-      paid: false,
-      amount: 180000,
-      court: "Sân 1",
-      date: "2025-11-11",
-    },
-    {
-      id: 3,
-      time: "08:00 - 10:00",
-      phone: "0909888666",
-      masked: "*****666",
-      customer: "Lê Văn D",
-      paid: true,
-      amount: 180000,
-      court: "Sân 2",
-      date: "2025-11-11",
-    },
-    {
-      id: 4,
-      time: "15:30 - 17:30",
-      phone: "0977333444",
-      masked: "*****444",
-      customer: "Trần Văn C",
-      paid: true,
-      amount: 250000,
-      court: "Sân 2",
-      date: "2025-11-11",
-    },
-  ],
-};
-
-const toMinutes = (str) => {
+const toMinutes = (str = "") => {
   const [h, m] = str.split(":").map(Number);
   return h * 60 + m;
 };
 
-const rangeWithin = (range, startFilter, endFilter) => {
-  const [s, e] = range.split(" - ").map((t) => toMinutes(t));
-  return s >= startFilter && e <= endFilter;
+const toTime = (value = "") => {
+  if (!value) return "";
+  if (value.includes("T")) {
+    const [, timePart = ""] = value.split("T");
+    const [h = "00", m = "00"] = timePart.split(":");
+    return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+  }
+  const parts = String(value).split(":");
+  return `${parts[0]?.padStart(2, "0") || "00"}:${parts[1]?.padStart(2, "0") || "00"}`;
+};
+
+const mockData = {
+  date: new Date().toISOString().slice(0, 10),
+  courts: [],
+  tickets: [],
 };
 
 export default function OwnerCourtStatusDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const data = mockCourtStatusDetail; // TODO: fetch by id when BE ready
-  const [filterDate, setFilterDate] = useState(data.date);
+  const [filterDate, setFilterDate] = useState(mockData.date);
   const [filterCourt, setFilterCourt] = useState("all");
   const [filterStart, setFilterStart] = useState("07:00");
   const [filterEnd, setFilterEnd] = useState("19:00");
-  const [filteredCourts, setFilteredCourts] = useState(data.courts);
-  const [filteredTickets, setFilteredTickets] = useState(data.tickets);
-  const [selectedTicket, setSelectedTicket] = useState(data.tickets[0]);
+  const [filteredCourts, setFilteredCourts] = useState(mockData.courts);
+  const [bookings, setBookings] = useState([]);
+  const [bookingError, setBookingError] = useState("");
+  const [bookingLoading, setBookingLoading] = useState(false);
 
   const applyFilters = () => {
-    const startMin = toMinutes(filterStart);
-    const endMin = toMinutes(filterEnd);
-    const courts = (filterCourt === "all"
-      ? data.courts
-      : data.courts.filter((c) => c.name === filterCourt)
-    ).map((c) => ({
-      ...c,
-      bookings: c.bookings.filter((b) => {
-        const s = toMinutes(b.start);
-        let e = toMinutes(b.end);
-        if (e <= s) e += 24 * 60;
-        return s >= startMin && e <= endMin;
-      }),
-    }));
-    const tickets = data.tickets.filter(
-      (t) =>
-        (filterCourt === "all" || t.court === filterCourt) &&
-        rangeWithin(t.time, startMin, endMin) &&
-        t.date === filterDate
-    );
-    setFilteredCourts(courts);
-    setFilteredTickets(tickets);
-    setSelectedTicket(tickets[0] || null);
+    // placeholder for future BE-powered filters on grid if needed
+  };
+
+  useEffect(() => {
+    const ownerId = localStorage.getItem("ownerId") || "";
+    if (!ownerId) {
+      setBookingError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
+      return;
+    }
+    const controller = new AbortController();
+    (async () => {
+      setBookingLoading(true);
+      setBookingError("");
+      try {
+        const params = new URLSearchParams();
+        params.append("ownerId", ownerId);
+        params.append("fieldId", id);
+        params.append("date", filterDate);
+        const res = await fetch(`${ENDPOINTS.ownerFieldBookings}?${params.toString()}`, { signal: controller.signal });
+        if (!res.ok) throw new Error("Không thể tải danh sách đơn đặt sân.");
+        const payload = await res.json().catch(() => ({}));
+        const list = Array.isArray(payload?.result)
+          ? payload.result
+          : Array.isArray(payload?.content)
+          ? payload.content
+          : [];
+        const mapped = list.map((item, idx) => ({
+          id: item.bookingId || item.id || `booking-${idx}`,
+          subField: item.subFieldIndex || item.indexField || item.subField || "",
+          start: toTime(item.startHour || item.start || ""),
+          end: toTime(item.endHour || item.end || ""),
+          phone: item.msisdn || item.phone || "",
+          status: (item.status || "PENDING").toUpperCase(),
+        }));
+        setBookings(mapped);
+      } catch (err) {
+        if (err.name === "AbortError") return;
+        setBookingError(err.message || "Có lỗi xảy ra.");
+        setBookings([]);
+      } finally {
+        if (!controller.signal.aborted) setBookingLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, [id, filterDate]);
+
+  const statusLabels = {
+    ACCEPT: "Đã duyệt",
+    PENDING: "Chờ duyệt",
+    INACCEPT: "Từ chối",
   };
 
   return (
@@ -142,9 +97,7 @@ export default function OwnerCourtStatusDetailPage() {
       <div className="detail-header">
         <div>
           <p className="owner-subtitle">Tình trạng sân</p>
-          <h1 className="owner-venues-title">
-            Chi tiết sân {data.courts?.[0]?.name || `#${id}`}
-          </h1>
+          <h1 className="owner-venues-title">Chi tiết sân #{id}</h1>
         </div>
         <button type="button" className="ghost-btn" onClick={() => navigate(-1)}>
           Quay lại
@@ -156,93 +109,41 @@ export default function OwnerCourtStatusDetailPage() {
         <TimeGrid courts={filteredCourts} start={filterStart} end={filterEnd} step={30} />
       </div>
 
-      <div className="status-meta">
-        <div className="filters-card">
-          <div className="filters">
-            <input
-              type="date"
-              value={filterDate}
-              onChange={(e) => setFilterDate(e.target.value)}
-            />
-            <select
-              value={filterCourt}
-              onChange={(e) => setFilterCourt(e.target.value)}
-            >
-              <option value="all">Tất cả sân</option>
-              {data.courts.map((c) => (
-                <option key={c.name} value={c.name}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <div className="time-pair">
-              <input
-                type="time"
-                value={filterStart}
-                onChange={(e) => setFilterStart(e.target.value)}
-              />
-              <span>-</span>
-              <input
-                type="time"
-                value={filterEnd}
-                onChange={(e) => setFilterEnd(e.target.value)}
-              />
-            </div>
+      <div className="bookings-list-card">
+        <div className="bookings-header">
+          <h3>Đơn đặt sân</h3>
+          <div className="bookings-filters">
+            <label>
+              Ngày:
+              <input type="date" value={filterDate} onChange={(e) => setFilterDate(e.target.value)} />
+            </label>
           </div>
-          <button type="button" className="filter-btn" onClick={applyFilters}>
-            Lọc
-          </button>
         </div>
-
-        <div className="tickets-card">
-          <div className="ticket-row ticket-head">
-            <span>#</span>
-            <span>Thời gian</span>
-            <span>SĐT</span>
-            <span />
-          </div>
-          <div className="ticket-list">
-            {filteredTickets.map((t) => (
-              <div className="ticket-row" key={t.id}>
-                <span className="ticket-id">#{t.id}</span>
-                <span className="ticket-time">{t.time}</span>
-                <span className="ticket-phone">{t.masked}</span>
-                <button
-                  type="button"
-                  className="link-btn"
-                  onClick={() => setSelectedTicket(t)}
-                >
-                  Xem chi tiết
-                </button>
+        {bookingError && <div className="form-error">{bookingError}</div>}
+        {bookingLoading && <div className="booking-row empty">Đang tải...</div>}
+        {!bookingLoading && bookings.length === 0 && !bookingError && <div className="booking-row empty">Chưa có đơn đặt sân</div>}
+        {!bookingLoading && bookings.length > 0 && (
+          <div className="booking-table">
+            <div className="booking-row booking-head">
+              <span>Sân con</span>
+              <span>Thời gian</span>
+              <span>SĐT</span>
+              <span>Trạng thái</span>
+            </div>
+            {bookings.map((b) => (
+              <div key={b.id} className="booking-row">
+                <span className="cell-strong">{b.subField || "—"}</span>
+                <span>
+                  {b.start} - {b.end}
+                </span>
+                <span>{b.phone || "—"}</span>
+                <span>
+                  <span className="status-chip">{statusLabels[b.status] || b.status}</span>
+                </span>
               </div>
             ))}
           </div>
-        </div>
-
-        <div className="user-card">
-          <div className="user-field">
-            <span>Tên người đặt</span>
-            <strong>{selectedTicket?.customer || "---"}</strong>
-          </div>
-          <div className="user-field">
-            <span>Số điện thoại</span>
-            <strong>{selectedTicket?.phone || "---"}</strong>
-          </div>
-          <div className="user-field">
-            <span>Thanh toán</span>
-            <strong className={selectedTicket?.paid ? "paid" : "unpaid"}>
-              {selectedTicket ? (selectedTicket.paid ? "Đã thanh toán" : "Chưa thanh toán") : "---"}
-            </strong>
-          </div>
-          <div className="user-field">
-            <span>Số tiền</span>
-            <strong>
-              {selectedTicket
-                ? `${selectedTicket.amount.toLocaleString("vi-VN")} VND`
-                : "---"}
-            </strong>
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

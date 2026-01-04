@@ -10,16 +10,17 @@ const STATUS_LABELS = {
 
 const apiStatusMap = {
   all: "",
-  pending: "INACCEPT",
+  pending: "PENDING",
   approved: "ACCEPT",
-  rejected: "REJECT",
+  rejected: "INACCEPT",
 };
 
 const toUiStatus = (status) => {
   const upper = (status || "").toUpperCase();
   if (upper === "ACCEPT") return { uiStatus: "approved", statusCode: "ACCEPT" };
-  if (upper === "REJECT") return { uiStatus: "rejected", statusCode: "REJECT" };
-  return { uiStatus: "pending", statusCode: "INACCEPT" };
+  if (upper === "INACCEPT" || upper === "REJECT") return { uiStatus: "rejected", statusCode: "INACCEPT" };
+  if (upper === "PENDING") return { uiStatus: "pending", statusCode: "PENDING" };
+  return { uiStatus: "pending", statusCode: upper || "PENDING" };
 };
 
 const formatDateTime = (value) => {
