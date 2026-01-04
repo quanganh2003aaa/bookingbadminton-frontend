@@ -5,6 +5,7 @@ export default function ManagerVenueForm({
   onNext,
   onBack,
   activeStep = 2,
+  allowBack = true,
   values,
   onChange,
   uploads,
@@ -30,15 +31,16 @@ export default function ManagerVenueForm({
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     onUploadsChange &&
-      onUploadsChange((prev) => {
-        const existingNames = new Set(prev.map((f) => f.name));
-        const mapped = files
-          .filter((f) => !existingNames.has(f.name))
-          .map((f) => ({
-            name: f.name,
+      onUploadsChange(() => {
+        const file = files[0];
+        return [
+          {
+            name: file.name,
             status: "Đã tải xong",
-          }));
-        return [...prev, ...mapped];
+            url: URL.createObjectURL(file),
+            file,
+          },
+        ];
       });
     e.target.value = "";
   };
@@ -139,7 +141,7 @@ export default function ManagerVenueForm({
 
         <div className="manager-grid-right">
           <div className="upload-card">
-            <p className="upload-title">Đăng tải ảnh sân</p>
+            <p className="upload-title">Cập nhật ảnh QR code ngân hàng</p>
             <div
               className="upload-drop"
               role="button"
@@ -147,12 +149,12 @@ export default function ManagerVenueForm({
               onClick={handlePickFiles}
               onKeyDown={(e) => e.key === "Enter" && handlePickFiles()}
             >
-              <span className="upload-icon">⬆</span>
-              <span className="upload-text">Click to upload</span>
+              <span className="upload-icon">+</span>
+              <span className="upload-text">Nhấn để chọn 1 ảnh QR</span>
+              <div className="upload-hint">Chỉ chọn 1 ảnh QR code ngân hàng</div>
             </div>
             <input
               type="file"
-              multiple
               accept="image/*"
               ref={fileInputRef}
               style={{ display: "none" }}
@@ -161,6 +163,9 @@ export default function ManagerVenueForm({
             <div className="upload-list">
               {uploads.map((file) => (
                 <div key={file.name} className="upload-item">
+                  <div className="upload-preview">
+                    {file.url ? <img src={file.url} alt={file.name} /> : null}
+                  </div>
                   <div>
                     <div className="upload-name">{file.name}</div>
                     <div className="upload-status">{file.status}</div>
@@ -176,16 +181,18 @@ export default function ManagerVenueForm({
       {error && <p className="form-error">{error}</p>}
 
       <div className="manager-actions">
-        <button
-          type="button"
-          className="back-link"
-          onClick={(e) => {
-            e.preventDefault();
-            onBack && onBack();
-          }}
-        >
-          Quay lại
-        </button>
+        {allowBack && (
+          <button
+            type="button"
+            className="back-link"
+            onClick={(e) => {
+              e.preventDefault();
+              onBack && onBack();
+            }}
+          >
+            Quay lại
+          </button>
+        )}
         <button type="submit" className="btn primary full" disabled={loading}>
           {loading ? "Đang gửi passcode..." : "Bước tiếp theo"}
         </button>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import "./admin-system.css";
 import { ENDPOINTS } from "../../api/endpoints";
 
-const statusLabel = {
+const STATUS_LABELS = {
   pending: "Chờ duyệt",
   approved: "Đã duyệt",
   rejected: "Từ chối",
@@ -15,7 +15,7 @@ const apiStatusMap = {
   rejected: "REJECT",
 };
 
-const mapApiStatus = (status) => {
+const toUiStatus = (status) => {
   const upper = (status || "").toUpperCase();
   if (upper === "ACCEPT") return { uiStatus: "approved", statusCode: "ACCEPT" };
   if (upper === "REJECT") return { uiStatus: "rejected", statusCode: "REJECT" };
@@ -36,6 +36,42 @@ const formatDateTime = (value) => {
   }).format(date);
 };
 
+const transformRegistration = (item, index) => {
+  const { uiStatus, statusCode } = toUiStatus(item.status);
+  return {
+    id: item.id || item.accountId || item.gmail || item.name || `row-${index}`,
+    name: item.name || "",
+    email: item.gmail || item.email || "",
+    status: uiStatus,
+    statusCode,
+  };
+};
+
+const transformDetail = (item, fallbackId) => {
+  const { uiStatus, statusCode } = toUiStatus(item.status);
+  return {
+    id: item.id || fallbackId,
+    accountId: item.accountId || "",
+    name: item.name || "",
+    email: item.gmail || item.email || "",
+    phone: item.mobileContact || "",
+    address: item.address || "",
+    linkMap: item.linkMap || "",
+    status: uiStatus,
+    statusCode,
+    createdAt: item.createdAt || "",
+    updatedAt: item.updatedAt || "",
+    qrImage:
+      item.qrImage ||
+      item.qrCode ||
+      item.qr ||
+      item.bankQr ||
+      item.imageQr ||
+      item.qrUrl ||
+      "",
+  };
+};
+
 export default function AdminRegistrationsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -48,6 +84,7 @@ export default function AdminRegistrationsPage() {
   const [actionLoadingId, setActionLoadingId] = useState(null);
   const [page, setPage] = useState(1);
   const [selectedId, setSelectedId] = useState(null);
+
   const pageSize = 10;
 
   useEffect(() => {
@@ -69,18 +106,7 @@ export default function AdminRegistrationsPage() {
 
         const data = await res.json().catch(() => ({}));
         const list = Array.isArray(data.result) ? data.result : [];
-        setRegistrations(
-          list.map((item, index) => {
-            const { uiStatus, statusCode } = mapApiStatus(item.status);
-            return {
-              id: item.id || item.accountId || item.gmail || item.name || `row-${index}`,
-              name: item.name || "",
-              email: item.gmail || item.email || "",
-              status: uiStatus,
-              statusCode,
-            };
-          })
-        );
+        setRegistrations(list.map(transformRegistration));
         setPage(1);
       } catch (err) {
         if (err.name === "AbortError") return;
@@ -108,21 +134,7 @@ export default function AdminRegistrationsPage() {
       const res = await fetch(url);
       if (!res.ok) throw new Error("Không thể tải chi tiết đơn đăng ký.");
       const data = await res.json().catch(() => ({}));
-      const item = data.result || {};
-      const { uiStatus, statusCode } = mapApiStatus(item.status);
-      setDetail({
-        id: item.id || id,
-        accountId: item.accountId || "",
-        name: item.name || "",
-        email: item.gmail || item.email || "",
-        phone: item.mobileContact || "",
-        address: item.address || "",
-        linkMap: item.linkMap || "",
-        status: uiStatus,
-        statusCode,
-        createdAt: item.createdAt || "",
-        updatedAt: item.updatedAt || "",
-      });
+      setDetail(transformDetail(data.result || {}, id));
     } catch (err) {
       setDetailError(err.message || "Có lỗi xảy ra khi tải chi tiết.");
     } finally {
@@ -130,8 +142,7 @@ export default function AdminRegistrationsPage() {
     }
   };
 
-  const filtered = useMemo(() => registrations, [registrations]);
-
+  const filtered = registrations;
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
 
@@ -265,7 +276,7 @@ export default function AdminRegistrationsPage() {
                   <span>{r.email || "Chưa cập nhật"}</span>
                   <span>
                     <span className={`status-badge status-${r.status} compact`}>
-                      {statusLabel[r.status] || r.statusCode || "Chưa rõ"}
+                      {STATUS_LABELS[r.status] || r.statusCode || "Chưa rõ"}
                     </span>
                   </span>
                   <span>
@@ -355,7 +366,7 @@ export default function AdminRegistrationsPage() {
                       : "status-pending"
                   }`}
                 >
-                  {statusLabel[detail.status] || detail.statusCode || "Chưa rõ"}
+                  {STATUS_LABELS[detail.status] || detail.statusCode || "Chưa rõ"}
                 </span>
               </div>
               <div className="detail-row">
@@ -370,14 +381,19 @@ export default function AdminRegistrationsPage() {
                 <span className="label">Bản đồ</span>
                 <div className="map-frame">
                   {detail.linkMap ? (
-                    <iframe
-                      title="Bản đồ sân"
-                      src={detail.linkMap}
-                      allowFullScreen
-                      loading="lazy"
-                    />
+                    <iframe title="Bản đồ sân" src={detail.linkMap} allowFullScreen loading="lazy" />
                   ) : (
                     <div className="map-placeholder">Chưa có bản đồ</div>
+                  )}
+                </div>
+              </div>
+              <div className="detail-row qr-row">
+                <span className="label">QR code ngân hàng</span>
+                <div className="qr-frame">
+                  {detail.qrImage ? (
+                    <img src={detail.qrImage} alt="QR thanh toán sân" className="qr-preview" />
+                  ) : (
+                    <div className="map-placeholder">Chưa có ảnh QR</div>
                   )}
                 </div>
               </div>

@@ -71,7 +71,7 @@ export default function OwnerVenueInfoPage() {
         <button
           type="button"
           className="ghost-btn"
-          onClick={() => navigate("/manager-register?step=2&auto=1")}
+          onClick={() => navigate("/manager-register?step=1&auto=1")}
         >
           + Thêm sân
         </button>

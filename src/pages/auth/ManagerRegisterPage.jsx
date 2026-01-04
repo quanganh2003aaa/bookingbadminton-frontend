@@ -8,16 +8,36 @@ import { ENDPOINTS } from "../../api/endpoints";
 
 const managerRegisterBg =
   "https://images.unsplash.com/photo-1512446816042-444d641267d4?auto=format&fit=crop&w=1600&q=80";
+const heroAlt = "Nền cầu lông";
+const blankState = { loading: false, error: "", success: "" };
+
+const getStoredOwner = () => {
+  try {
+    const raw = localStorage.getItem("ownerAccount");
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+};
 
 export default function ManagerRegisterPage() {
   const [searchParams] = useSearchParams();
+  const storedOwner = useMemo(getStoredOwner, []);
+  const isOwnerContext = Boolean(storedOwner?.ownerId);
 
   const autoPrefill = searchParams.get("auto") === "1";
   const initialStep = searchParams.get("step") === "2" ? 2 : 1;
 
   const autoRegister = useMemo(
     () =>
-      autoPrefill
+      isOwnerContext
+        ? {
+            phone: storedOwner?.msisdn || "",
+            email: storedOwner?.gmail || "",
+            password: "",
+            confirmPassword: "",
+          }
+        : autoPrefill
         ? {
             phone: "0987654321",
             email: "owner@example.com",
@@ -25,7 +45,7 @@ export default function ManagerRegisterPage() {
             confirmPassword: "12345678",
           }
         : { phone: "", email: "", password: "", confirmPassword: "" },
-    [autoPrefill]
+    [autoPrefill, isOwnerContext, storedOwner?.gmail, storedOwner?.msisdn]
   );
 
   const [step, setStep] = useState(initialStep);
@@ -35,23 +55,35 @@ export default function ManagerRegisterPage() {
     address: "",
     phone: "",
     mapLink: "",
+    imgQr: "",
   });
   const [uploads, setUploads] = useState([]);
   const [passcode, setPasscode] = useState("");
-  const [accountId, setAccountId] = useState("");
-  const [passcodeState, setPasscodeState] = useState({ loading: false, error: "", success: "" });
-  const [confirmState, setConfirmState] = useState({ loading: false, error: "", success: "" });
+  const [accountId, setAccountId] = useState(storedOwner?.ownerId || "");
+  const [passcodeState, setPasscodeState] = useState(blankState);
+  const [confirmState, setConfirmState] = useState(blankState);
+
+  const buildRegisterPayload = () => ({
+    account: {
+      password: registerValues.password,
+      gmail: registerValues.email.trim(),
+      msisdn: registerValues.phone,
+    },
+  });
 
   const sendPasscode = async () => {
-    setPasscodeState({ loading: true, error: "", success: "" });
+    setPasscodeState({ ...blankState, loading: true });
     try {
-      const payload = {
-        account: {
-          password: registerValues.password,
-          gmail: registerValues.email.trim(),
-          msisdn: registerValues.phone,
-        },
-      };
+      const payload = isOwnerContext
+        ? {
+            account: {
+              ownerId: storedOwner?.ownerId,
+              gmail: storedOwner?.gmail || registerValues.email.trim(),
+              msisdn: storedOwner?.msisdn || registerValues.phone,
+              password: registerValues.password,
+            },
+          }
+        : buildRegisterPayload();
       const res = await fetch(ENDPOINTS.registerOwnerPasscode, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -64,6 +96,7 @@ export default function ManagerRegisterPage() {
       const data = await res.json().catch(() => ({}));
       const newAccountId = data?.result?.accountId || data?.accountId || "";
       if (newAccountId) setAccountId(newAccountId);
+      if (!newAccountId && storedOwner?.ownerId) setAccountId(storedOwner.ownerId);
       setPasscodeState({
         loading: false,
         error: "",
@@ -77,37 +110,38 @@ export default function ManagerRegisterPage() {
 
   const handleVenueNext = async (vals) => {
     setVenueValues(vals);
+    if (!vals.imgQr && uploads[0]?.url) {
+      setVenueValues((prev) => ({ ...prev, imgQr: uploads[0].url }));
+    }
     await sendPasscode();
   };
 
   const handleConfirmRegister = async () => {
-    setConfirmState({ loading: true, error: "", success: "" });
-    if (!passcode || passcode.length !== 6) {
-      setConfirmState({
-        loading: false,
-        error: "Vui lòng nhập passcode gồm 6 số.",
-        success: "",
-      });
+    const trimmedCode = passcode.trim();
+    setConfirmState({ ...blankState, loading: true });
+    if (!trimmedCode || trimmedCode.length !== 6) {
+      setConfirmState({ ...blankState, error: "Vui lòng nhập passcode gồm 6 số." });
       return;
     }
     if (!accountId) {
       setConfirmState({
-        loading: false,
+        ...blankState,
         error: "Không tìm thấy tài khoản, vui lòng gửi lại passcode.",
-        success: "",
       });
       return;
     }
 
     try {
       const payload = {
-        accountId,
-        code: passcode,
+        accountId: accountId || storedOwner?.ownerId || "",
+        ownerId: accountId || storedOwner?.ownerId || "",
+        code: trimmedCode,
         register: {
           name: venueValues.name,
           address: venueValues.address,
           mobileContact: venueValues.phone,
           linkMap: venueValues.mapLink,
+          imgQr: venueValues.imgQr || uploads[0]?.url || "",
         },
       };
 
@@ -122,8 +156,7 @@ export default function ManagerRegisterPage() {
       }
 
       setConfirmState({
-        loading: false,
-        error: "",
+        ...blankState,
         success: "Đăng ký thành công! Đang chuyển đến đăng nhập...",
       });
       setTimeout(() => window.location.assign("/owner-login"), 900);
@@ -139,6 +172,8 @@ export default function ManagerRegisterPage() {
           activeStep={1}
           values={registerValues}
           onChange={setRegisterValues}
+          allowEditAccount={!isOwnerContext}
+          showLoginHint={!isOwnerContext}
           onNext={() => setStep(2)}
         />
       );
@@ -155,6 +190,7 @@ export default function ManagerRegisterPage() {
           loading={passcodeState.loading}
           error={passcodeState.error}
           onBack={() => setStep(1)}
+          allowBack
         />
       );
     }
@@ -176,7 +212,7 @@ export default function ManagerRegisterPage() {
   return (
     <div className="manager-register-page">
       <div className="manager-register-hero">
-        <img src={managerRegisterBg} alt="Nền cầu lông" />
+        <img src={managerRegisterBg} alt={heroAlt} />
       </div>
       <div className="manager-register-card">
         <div className="manager-heading">

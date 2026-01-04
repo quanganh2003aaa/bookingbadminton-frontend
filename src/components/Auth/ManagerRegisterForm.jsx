@@ -6,6 +6,8 @@ export default function ManagerRegisterForm({
   activeStep = 1,
   values,
   onChange,
+  allowEditAccount = true,
+  showLoginHint = true,
 }) {
   const [show, setShow] = useState({ password: false, confirm: false });
   const [error, setError] = useState("");
@@ -72,6 +74,7 @@ export default function ManagerRegisterForm({
             value={values.phone}
             onChange={handleChange}
             required
+            readOnly={!allowEditAccount}
           />
         </div>
       </div>
@@ -87,6 +90,7 @@ export default function ManagerRegisterForm({
             value={values.email}
             onChange={handleChange}
             required
+            readOnly={!allowEditAccount}
           />
         </div>
       </div>
@@ -146,12 +150,14 @@ export default function ManagerRegisterForm({
         Bước tiếp theo
       </button>
 
-      <p className="signup-note">
-        Bạn đã có tài khoản quản lý?{" "}
-        <a className="link-accent" href="/owner-login">
-          Đăng nhập!
-        </a>
-      </p>
+      {showLoginHint && (
+        <p className="signup-note">
+          Bạn đã có tài khoản quản lý?{" "}
+          <a className="link-accent" href="/owner-login">
+            Đăng nhập!
+          </a>
+        </p>
+      )}
     </form>
   );
 }

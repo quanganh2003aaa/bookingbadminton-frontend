@@ -42,6 +42,13 @@ export default function OwnerLoginForm() {
         "";
       if (ownerId) {
         localStorage.setItem("ownerId", ownerId);
+        const ownerAccount = {
+          ownerId,
+          gmail: data.result?.gmail || data.gmail || payload.gmail,
+          msisdn: data.result?.msisdn || data.result?.phone || data.msisdn || "",
+          name: data.result?.name || "",
+        };
+        localStorage.setItem("ownerAccount", JSON.stringify(ownerAccount));
       }
 
       setSuccess("Đăng nhập thành công! Đang chuyển hướng...");
