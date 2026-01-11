@@ -11,10 +11,15 @@ const managerRegisterBg =
 const heroAlt = "Nền cầu lông";
 const blankState = { loading: false, error: "", success: "" };
 
-const getStoredOwner = () => {
+const getOwnerFromCookie = () => {
   try {
-    const raw = localStorage.getItem("ownerAccount");
-    return raw ? JSON.parse(raw) : {};
+    const raw =
+      (document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("userInfo=")) || ""
+      ).split("=")[1] || "";
+    return raw ? JSON.parse(decodeURIComponent(raw)) : {};
   } catch {
     return {};
   }
@@ -22,32 +27,23 @@ const getStoredOwner = () => {
 
 export default function ManagerRegisterPage() {
   const [searchParams] = useSearchParams();
-  const storedOwner = useMemo(getStoredOwner, []);
-  const isOwnerContext = Boolean(storedOwner?.ownerId);
+  const ownerCookie = useMemo(getOwnerFromCookie, []);
+  const isOwnerContext = Boolean(ownerCookie?.userId);
 
-  const autoPrefill = searchParams.get("auto") === "1";
-  const initialStep = searchParams.get("step") === "2" ? 2 : 1;
+  const initialStep = 1;
 
   const autoRegister = useMemo(
     () =>
       isOwnerContext
         ? {
-            ownerName: storedOwner?.nameOwner || storedOwner?.name || "Chủ sân",
-            phone: storedOwner?.msisdn || "",
-            email: storedOwner?.gmail || "",
+            ownerName: ownerCookie?.username || ownerCookie?.name || "",
+            phone: ownerCookie?.msisdn || ownerCookie?.phone || "",
+            email: ownerCookie?.email || ownerCookie?.gmail || "",
             password: "",
             confirmPassword: "",
           }
-        : autoPrefill
-        ? {
-            ownerName: "Nguyễn Văn A",
-            phone: "0987654321",
-            email: "owner@example.com",
-            password: "12345678",
-            confirmPassword: "12345678",
-          }
         : { ownerName: "", phone: "", email: "", password: "", confirmPassword: "" },
-    [autoPrefill, isOwnerContext, storedOwner?.gmail, storedOwner?.msisdn, storedOwner?.name, storedOwner?.nameOwner]
+    [isOwnerContext, ownerCookie]
   );
 
   const [step, setStep] = useState(initialStep);
@@ -61,24 +57,24 @@ export default function ManagerRegisterPage() {
   });
   const [uploads, setUploads] = useState([]);
   const [passcode, setPasscode] = useState("");
-  const [accountId, setAccountId] = useState(storedOwner?.ownerId || "");
+  const [accountId, setAccountId] = useState(ownerCookie?.userId || "");
   const [passcodeState, setPasscodeState] = useState(blankState);
   const [confirmState, setConfirmState] = useState(blankState);
 
   const sendPasscode = async (targetVenueValues = venueValues) => {
     setPasscodeState({ ...blankState, loading: true });
     try {
-      const phoneNumber = storedOwner?.msisdn || registerValues.phone;
+      const phoneNumber = ownerCookie?.msisdn || registerValues.phone;
       const payload = {
         name: targetVenueValues.name,
         address: targetVenueValues.address,
         mobileContact: targetVenueValues.phone,
-        gmail: (storedOwner?.gmail || registerValues.email || "").trim(),
+        gmail: (ownerCookie?.email || ownerCookie?.gmail || registerValues.email || "").trim(),
         password: registerValues.password,
         msiSdn: phoneNumber,
         msisdn: phoneNumber,
         active: "PENDING",
-        nameOwner: registerValues.ownerName || storedOwner?.nameOwner || storedOwner?.name || "",
+        nameOwner: registerValues.ownerName || ownerCookie?.username || ownerCookie?.name || "",
         linkMap: targetVenueValues.mapLink,
       };
 
@@ -97,7 +93,7 @@ export default function ManagerRegisterPage() {
       }
       const newAccountId = data?.result?.accountId || data?.data?.accountId || data?.accountId || "";
       if (newAccountId) setAccountId(newAccountId);
-      if (!newAccountId && storedOwner?.ownerId) setAccountId(storedOwner.ownerId);
+      if (!newAccountId && ownerCookie?.userId) setAccountId(ownerCookie.userId);
       setPasscodeState({
         loading: false,
         error: "",
@@ -132,7 +128,7 @@ export default function ManagerRegisterPage() {
     }
 
     try {
-      const email = (storedOwner?.gmail || registerValues.email || "").trim();
+      const email = (ownerCookie?.email || ownerCookie?.gmail || registerValues.email || "").trim();
       const formData = new FormData();
       formData.append(
         "request",
@@ -179,7 +175,7 @@ export default function ManagerRegisterPage() {
           activeStep={1}
           values={registerValues}
           onChange={setRegisterValues}
-          allowEditAccount={!isOwnerContext}
+          allowEditAccount={!isOwnerContext ? true : false}
           showLoginHint={!isOwnerContext}
           onNext={() => setStep(2)}
         />
@@ -206,27 +202,33 @@ export default function ManagerRegisterPage() {
         activeStep={3}
         value={passcode}
         onChange={setPasscode}
-        onResend={sendPasscode}
-        onSubmit={handleConfirmRegister}
-        loading={confirmState.loading}
-        error={confirmState.error}
-        success={confirmState.success || passcodeState.success}
         onBack={() => setStep(2)}
+        loading={confirmState.loading}
+        success={confirmState.success}
+        error={confirmState.error}
+        onSubmit={handleConfirmRegister}
       />
     );
   };
 
   return (
-    <div className="manager-register-page">
-      <div className="manager-register-hero">
-        <img src={managerRegisterBg} alt={heroAlt} />
-      </div>
-      <div className="manager-register-card">
-        <div className="manager-heading">
-          <h1>Đăng ký quản lý</h1>
-          <p>Nhập thông tin cá nhân của bạn</p>
+    <div className="manager-register-page" style={{ backgroundImage: `url(${managerRegisterBg})` }}>
+      <div className="manager-register-overlay" />
+      <div className="manager-register-shell">
+        <div className="manager-register-hero">
+          <p className="eyebrow">Đăng ký sân</p>
+          <h1>Trở thành đối tác quản lý sân</h1>
+          <p className="sub">
+            Thêm sân mới vào tài khoản owner đang đăng nhập. Thông tin chủ sân được lấy từ tài khoản hiện tại, bạn chỉ cần nhập mật khẩu để xác nhận.
+          </p>
         </div>
-        {renderStep()}
+
+        <div className="manager-register-card">
+          <div className="card-left">
+            <img src={managerRegisterBg} alt={heroAlt} />
+          </div>
+          <div className="card-right">{renderStep()}</div>
+        </div>
       </div>
     </div>
   );
