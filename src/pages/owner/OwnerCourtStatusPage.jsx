@@ -50,6 +50,11 @@ export default function OwnerCourtStatusPage() {
     }
   };
 
+  const getAccessToken = () => {
+    const token = getCookie("accessToken");
+    return token || "";
+  };
+
   useEffect(() => {
     const ownerId = getOwnerId();
     if (!ownerId) {
@@ -66,7 +71,13 @@ export default function OwnerCourtStatusPage() {
         params.append("page", String(Math.max(currentPage - 1, 0)));
         params.append("size", String(pageSize));
         const url = `${ENDPOINTS.ownerFieldBookings}?${params.toString()}`;
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        const token = getAccessToken();
+        const res = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
         if (!res.ok) throw new Error("Không thể tải danh sách sân.");
         const data = await res.json().catch(() => ({}));
         const payload = data.result || {};

@@ -7,8 +7,6 @@ export const ENDPOINTS = {
   logout: `${API_BASE}/auth/logout`,
   registerOwner: `${API_BASE}/auth/register-owner`,
   verifyOtpRegister: `${API_BASE}/auth/verify-otp-register`,
-  registerOwnerPasscode: `${API_BASE}/passcodes/register-owner`,
-  registerOwnerConfirm: `${API_BASE}/register-owners/confirm`,
   loginOwner: `${API_BASE}/accounts/login/owner`,
 
   //ADMIN ENDPOINTS
@@ -40,8 +38,7 @@ export const ENDPOINTS = {
   // USER BOOKING
   bookingPending: `${API_BASE}/bookings/pending`,
   bookingPayDetail: (id) => `${API_BASE}/bookings/${encodeURIComponent(id)}/pay-detail`,
+  bookingUserList: (userId) => `${API_BASE}/bookings/user/${encodeURIComponent(userId)}/list`,
   userDetailInfo: `${API_BASE}/users/detail-info`,
   timeSlotsField: (id) => `${API_BASE}/time-slots/field/${encodeURIComponent(id)}`,
-  fieldImageUpload: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images/upload`,
-  fieldImages: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images`,
 };

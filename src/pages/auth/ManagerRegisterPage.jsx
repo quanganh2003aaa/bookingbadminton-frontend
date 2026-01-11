@@ -36,9 +36,9 @@ export default function ManagerRegisterPage() {
     () =>
       isOwnerContext
         ? {
-            ownerName: ownerCookie?.username || ownerCookie?.name || "",
+            ownerName: ownerCookie?.name || ownerCookie?.username || "",
             phone: ownerCookie?.msisdn || ownerCookie?.phone || "",
-            email: ownerCookie?.email || ownerCookie?.gmail || "",
+            email: ownerCookie?.email || ownerCookie?.gmail || ownerCookie?.username || "",
             password: "",
             confirmPassword: "",
           }
@@ -69,7 +69,13 @@ export default function ManagerRegisterPage() {
         name: targetVenueValues.name,
         address: targetVenueValues.address,
         mobileContact: targetVenueValues.phone,
-        gmail: (ownerCookie?.email || ownerCookie?.gmail || registerValues.email || "").trim(),
+        gmail: (
+          ownerCookie?.email ||
+          ownerCookie?.gmail ||
+          ownerCookie?.username ||
+          registerValues.email ||
+          ""
+        ).trim(),
         password: registerValues.password,
         msiSdn: phoneNumber,
         msisdn: phoneNumber,
@@ -175,7 +181,7 @@ export default function ManagerRegisterPage() {
           activeStep={1}
           values={registerValues}
           onChange={setRegisterValues}
-          allowEditAccount={!isOwnerContext ? true : false}
+          allowEditAccount={!isOwnerContext}
           showLoginHint={!isOwnerContext}
           onNext={() => setStep(2)}
         />
@@ -202,33 +208,31 @@ export default function ManagerRegisterPage() {
         activeStep={3}
         value={passcode}
         onChange={setPasscode}
-        onBack={() => setStep(2)}
-        loading={confirmState.loading}
-        success={confirmState.success}
-        error={confirmState.error}
+        onResend={sendPasscode}
         onSubmit={handleConfirmRegister}
+        loading={confirmState.loading}
+        error={confirmState.error}
+        success={confirmState.success || passcodeState.success}
+        onBack={() => setStep(2)}
       />
     );
   };
 
   return (
-    <div className="manager-register-page" style={{ backgroundImage: `url(${managerRegisterBg})` }}>
-      <div className="manager-register-overlay" />
-      <div className="manager-register-shell">
-        <div className="manager-register-hero">
-          <p className="eyebrow">Đăng ký sân</p>
-          <h1>Trở thành đối tác quản lý sân</h1>
-          <p className="sub">
-            Thêm sân mới vào tài khoản owner đang đăng nhập. Thông tin chủ sân được lấy từ tài khoản hiện tại, bạn chỉ cần nhập mật khẩu để xác nhận.
+    <div className="manager-register-page">
+      <div className="manager-register-hero">
+        <img src={managerRegisterBg} alt={heroAlt} />
+      </div>
+      <div className="manager-register-card">
+        <div className="manager-heading">
+          <h1>Đăng ký quản lý</h1>
+          <p>
+            {isOwnerContext
+              ? "Thông tin chủ sân được lấy từ tài khoản đang đăng nhập, hãy nhập mật khẩu để xác nhận."
+              : "Nhập thông tin cá nhân của bạn"}
           </p>
         </div>
-
-        <div className="manager-register-card">
-          <div className="card-left">
-            <img src={managerRegisterBg} alt={heroAlt} />
-          </div>
-          <div className="card-right">{renderStep()}</div>
-        </div>
+        {renderStep()}
       </div>
     </div>
   );

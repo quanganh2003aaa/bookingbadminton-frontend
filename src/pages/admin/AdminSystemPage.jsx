@@ -21,6 +21,12 @@ export default function AdminSystemPage() {
     setLoading(true);
     setError("");
     try {
+      const token =
+        document.cookie
+          .split(";")
+          .map((c) => c.trim())
+          .find((c) => c.startsWith("accessToken="))
+          ?.split("=")[1] || "";
       const params = new URLSearchParams();
       if (search.trim()) params.append("search", search.trim());
       params.append("page", String(Math.max(currentPage - 1, 0)));
@@ -28,7 +34,12 @@ export default function AdminSystemPage() {
       if (lockedFilter !== "all") params.append("locked", lockedFilter === "locked");
       const query = params.toString();
       const url = `${ENDPOINTS.adminUsers}${query ? `?${query}` : ""}`;
-      const res = await fetch(url, { headers: { Accept: "application/json" } });
+      const res = await fetch(url, {
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       if (!res.ok) throw new Error("Không thể tải danh sách người dùng.");
       const data = await res.json().catch(() => ({}));
       const payload = data.result || {};
@@ -85,7 +96,18 @@ export default function AdminSystemPage() {
       const url = user.locked
         ? ENDPOINTS.accountUnlock(user.id)
         : ENDPOINTS.accountLock(user.id);
-      const res = await fetch(url, { method: "POST" });
+      const token =
+        document.cookie
+          .split(";")
+          .map((c) => c.trim())
+          .find((c) => c.startsWith("accessToken="))
+          ?.split("=")[1] || "";
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
       if (!res.ok) {
         throw new Error(user.locked ? "Không thể mở khóa tài khoản." : "Không thể khóa tài khoản.");
       }

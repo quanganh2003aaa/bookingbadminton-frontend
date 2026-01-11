@@ -77,12 +77,24 @@ export default function OwnerVenueDetailPage() {
     }
   };
 
+  const getAccessToken = () => {
+    if (typeof document === "undefined") return "";
+    return (
+      document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("accessToken="))
+        ?.split("=")[1] || ""
+    );
+  };
+
   useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       setError("");
       try {
         const ownerId = getOwnerIdFromCookie();
+        const token = getAccessToken();
         const url =
           typeof ENDPOINTS.ownerFieldDetailByOwner === "function"
             ? ENDPOINTS.ownerFieldDetailByOwner(id)
@@ -90,7 +102,11 @@ export default function OwnerVenueDetailPage() {
         const body = ownerId ? JSON.stringify({ ownerId }) : undefined;
         const res = await fetch(url, {
           method: body ? "POST" : "GET",
-          headers: { Accept: "application/json", "Content-Type": body ? "application/json" : undefined },
+          headers: {
+            Accept: "application/json",
+            "Content-Type": body ? "application/json" : undefined,
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body,
         });
         if (!res.ok) throw new Error("Không thể tải chi tiết sân.");

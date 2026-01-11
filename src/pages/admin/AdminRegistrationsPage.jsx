@@ -88,6 +88,12 @@ export default function AdminRegistrationsPage() {
   const [selectedId, setSelectedId] = useState(null);
 
   const pageSize = 10;
+  const accessToken =
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("accessToken="))
+      ?.split("=")[1] || "";
 
   useEffect(() => {
     const controller = new AbortController();
@@ -103,7 +109,12 @@ export default function AdminRegistrationsPage() {
 
         const query = params.toString();
         const url = `${ENDPOINTS.adminRegisterOwners}${query ? `?${query}` : ""}`;
-        const res = await fetch(url, { signal: controller.signal });
+        const res = await fetch(url, {
+          signal: controller.signal,
+          headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
+        });
         if (!res.ok) throw new Error("Không thể tải danh sách đơn đăng ký.");
 
         const data = await res.json().catch(() => ({}));
@@ -121,7 +132,7 @@ export default function AdminRegistrationsPage() {
 
     fetchRegistrations();
     return () => controller.abort();
-  }, [search, statusFilter]);
+  }, [search, statusFilter, accessToken]);
 
   const fetchDetail = async (id) => {
     if (!id) return;
@@ -133,7 +144,11 @@ export default function AdminRegistrationsPage() {
         typeof ENDPOINTS.adminRegisterOwnerDetail === "function"
           ? ENDPOINTS.adminRegisterOwnerDetail(id)
           : `${ENDPOINTS.adminRegisterOwners}/${id}/detail`;
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: {
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      });
       if (!res.ok) throw new Error("Không thể tải chi tiết đơn đăng ký.");
       const data = await res.json().catch(() => ({}));
       setDetail(transformDetail(data.result || {}, id));
@@ -181,7 +196,13 @@ export default function AdminRegistrationsPage() {
             : `${ENDPOINTS.adminRegisterOwners}/${item.id}/reject`;
       }
       if (!url) throw new Error("Thiếu endpoint cập nhật trạng thái.");
-      const res = await fetch(url, { method: "POST", headers: { Accept: "application/json" } });
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          Accept: "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      });
       if (!res.ok) {
         const message =
           nextStatus === "approved"

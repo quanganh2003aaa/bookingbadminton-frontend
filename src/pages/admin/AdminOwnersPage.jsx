@@ -25,16 +25,26 @@ export default function AdminOwnersPage() {
   const totalPages = Math.max(1, Math.ceil((total || owners.length) / pageSize));
   const currentPage = Math.max(1, Math.min(page, totalPages));
 
-  const fetchOwners = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const params = new URLSearchParams();
-      if (search.trim()) params.append("search", search.trim());
-      params.append("page", String(Math.max(currentPage - 1, 0)));
-      params.append("size", String(pageSize));
-      const url = `${ENDPOINTS.adminFields}?${params.toString()}`;
-      const res = await fetch(url);
+const fetchOwners = async () => {
+  setLoading(true);
+  setError("");
+  try {
+    const token =
+      document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("accessToken="))
+        ?.split("=")[1] || "";
+    const params = new URLSearchParams();
+    if (search.trim()) params.append("search", search.trim());
+    params.append("page", String(Math.max(currentPage - 1, 0)));
+    params.append("size", String(pageSize));
+    const url = `${ENDPOINTS.adminFields}?${params.toString()}`;
+    const res = await fetch(url, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
       if (!res.ok) throw new Error("Không thể tải danh sách sân.");
       const data = await res.json().catch(() => ({}));
       const payload = data.result || {};
@@ -80,11 +90,21 @@ export default function AdminOwnersPage() {
     setDetailError("");
     setDetailLoading(true);
     try {
-      const url =
-        typeof ENDPOINTS.adminFieldDetail === "function"
-          ? ENDPOINTS.adminFieldDetail(id)
-          : `${ENDPOINTS.adminFields}/${id}/detail`;
-      const res = await fetch(url);
+    const url =
+      typeof ENDPOINTS.adminFieldDetail === "function"
+        ? ENDPOINTS.adminFieldDetail(id)
+        : `${ENDPOINTS.adminFields}/${id}/detail`;
+    const token =
+      document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("accessToken="))
+        ?.split("=")[1] || "";
+    const res = await fetch(url, {
+      headers: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+    });
       if (!res.ok) throw new Error("Không thể tải chi tiết sân.");
       const data = await res.json().catch(() => ({}));
       const item = data.result || {};

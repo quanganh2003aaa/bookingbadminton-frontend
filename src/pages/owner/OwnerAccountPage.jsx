@@ -36,14 +36,21 @@ export default function OwnerAccountPage() {
     avatar: "",
   });
 
+  const getAccessToken = () => getCookie("accessToken");
+
   useEffect(() => {
     const ownerId = userInfo.userId || "";
     if (!ownerId) return;
     (async () => {
       try {
+        const token = getAccessToken();
         const res = await fetch(ENDPOINTS.ownerDetailInfo, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({ ownerId }),
         });
         if (!res.ok) return;

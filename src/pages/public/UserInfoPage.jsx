@@ -23,18 +23,6 @@ import "./userInfoPage.css";
 
 const { Title, Text } = Typography;
 
-// Tạm thời giữ dữ liệu mẫu cho tab Lịch đặt
-const mockBookings = [
-  {
-    id: 1,
-    date: "2026-01-01",
-    venue: "Sân cầu lông Duy Tân",
-    address: "Km 10, Nguyễn Trãi, Thanh Xuân, Hà Nội",
-    timeRange: "17:00 - 19:00",
-    ownerPhones: ["0987654321", "0966666666"],
-  },
-];
-
 const getUserFromCookie = () => {
   try {
     const raw =
@@ -66,11 +54,16 @@ const clearCookie = (name) => {
 };
 
 export default function UserInfoPage() {
-  const [selectedId, setSelectedId] = useState(mockBookings[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState("bookings");
   const [profile, setProfile] = useState({ name: "", email: "", phone: "", avatar: "" });
   const [isEditing, setIsEditing] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [bookings, setBookings] = useState([]);
+  const [bookingsLoading, setBookingsLoading] = useState(false);
+  const [bookingsError, setBookingsError] = useState("");
+  const [bookingDetail, setBookingDetail] = useState(null);
+  const [bookingDetailLoading, setBookingDetailLoading] = useState(false);
   const navigate = useNavigate();
 
   const userCookie = useMemo(getUserFromCookie, []);
@@ -78,11 +71,22 @@ export default function UserInfoPage() {
   useEffect(() => {
     const userId = userCookie.userId || "";
     if (!userId) return;
+    // profile
     (async () => {
       try {
+        const token =
+          document.cookie
+            .split(";")
+            .map((c) => c.trim())
+            .find((c) => c.startsWith("accessToken="))
+            ?.split("=")[1] || "";
         const res = await fetch(ENDPOINTS.userDetailInfo, {
           method: "POST",
-          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
           body: JSON.stringify({ userId }),
         });
         if (!res.ok) return;
@@ -95,15 +99,63 @@ export default function UserInfoPage() {
           avatar: result.avatar || "",
         });
       } catch {
-        // ignore errors, still clear local state
+        // ignore
+      }
+    })();
+
+    // bookings list
+    (async () => {
+      setBookingsLoading(true);
+      setBookingsError("");
+      try {
+        const token =
+          document.cookie
+            .split(";")
+            .map((c) => c.trim())
+            .find((c) => c.startsWith("accessToken="))
+            ?.split("=")[1] || "";
+        const res = await fetch(ENDPOINTS.bookingUserList(userId), {
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
+        if (!res.ok) throw new Error("Không thể tải danh sách đặt sân.");
+        const data = await res.json().catch(() => ({}));
+        const list = Array.isArray(data?.result) ? data.result : [];
+        setBookings(
+          list.map((item, idx) => ({
+            id: item.bookingId || `booking-${idx}`,
+            bookingId: item.bookingId || `booking-${idx}`,
+            date: item.date || "",
+            venue: item.fieldName || "—",
+            timeRange: item.timeRange || "",
+            status: item.status || "",
+          }))
+        );
+        setSelectedId((prev) => prev || list[0]?.bookingId || null);
+      } catch (err) {
+        setBookingsError(err.message || "Không thể tải danh sách đặt sân.");
+        setBookings([]);
+      } finally {
+        setBookingsLoading(false);
       }
     })();
   }, [userCookie]);
 
   const selectedBooking = useMemo(
-    () => mockBookings.find((b) => b.id === selectedId) || mockBookings[0],
-    [selectedId]
+    () => bookings.find((b) => b.bookingId === selectedId) || bookings.find((b) => b.id === selectedId),
+    [bookings, selectedId]
   );
+
+  const renderStatus = (val = "") => {
+    const upper = String(val || "").toUpperCase();
+    if (upper === "ACCEPT") return "Đã duyệt";
+    if (upper === "INACCEPT") return "Từ chối";
+    if (upper === "PENDING") return "Chờ duyệt";
+    if (upper === "COMFIRM") return "Chờ chấp thuận";
+    return upper || "Chưa rõ";
+  };
 
   const columns = [
     {
@@ -123,6 +175,12 @@ export default function UserInfoPage() {
       dataIndex: "timeRange",
       key: "timeRange",
       width: 150,
+    },
+    {
+      title: "Trạng thái",
+      dataIndex: "status",
+      key: "status",
+      render: (val) => renderStatus(val),
     },
   ];
 
@@ -150,6 +208,24 @@ export default function UserInfoPage() {
       message.success("Đăng xuất thành công");
       setLoggingOut(false);
       navigate("/login");
+    }
+  };
+
+  const fetchBookingDetail = async (bookingId) => {
+    if (!bookingId) return;
+    setBookingDetailLoading(true);
+    try {
+      const res = await fetch(ENDPOINTS.bookingPayDetail(bookingId), {
+        headers: { Accept: "application/json" },
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.message || "Không thể tải chi tiết đơn.");
+      setBookingDetail(data?.result || null);
+    } catch (err) {
+      message.error(err.message || "Không thể tải chi tiết đơn.");
+      setBookingDetail(null);
+    } finally {
+      setBookingDetailLoading(false);
     }
   };
 
@@ -211,14 +287,16 @@ export default function UserInfoPage() {
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={15}>
         <Card title="Danh sách lịch đặt" className="ui-card">
+          {bookingsError && <div className="form-error">{bookingsError}</div>}
           <Table
             columns={columns}
-            dataSource={mockBookings.map((b) => ({ ...b, key: b.id }))}
+            dataSource={bookings.map((b) => ({ ...b, key: b.bookingId || b.id }))}
             pagination={false}
             size="middle"
-            rowClassName={(record) => (record.id === selectedId ? "table-row-selected" : "")}
+            loading={bookingsLoading}
+            rowClassName={(record) => (record.bookingId === selectedId ? "table-row-selected" : "")}
             onRow={(record) => ({
-              onClick: () => setSelectedId(record.id),
+              onClick: () => setSelectedId(record.bookingId),
               style: { cursor: "pointer" },
             })}
           />
@@ -229,31 +307,55 @@ export default function UserInfoPage() {
           {selectedBooking ? (
             <Space direction="vertical" size="middle" style={{ width: "100%" }}>
               <Descriptions column={1} size="small" bordered>
+                <Descriptions.Item label="Mã đơn">
+                  <Text strong>{selectedBooking.bookingId}</Text>
+                </Descriptions.Item>
                 <Descriptions.Item label="Tên sân">
                   <Text strong>{selectedBooking.venue}</Text>
                 </Descriptions.Item>
-                <Descriptions.Item label="Địa chỉ">{selectedBooking.address}</Descriptions.Item>
                 <Descriptions.Item label="Ngày">{formatDate(selectedBooking.date)}</Descriptions.Item>
                 <Descriptions.Item label="Khung giờ">{selectedBooking.timeRange}</Descriptions.Item>
+                <Descriptions.Item label="Trạng thái">{renderStatus(selectedBooking.status)}</Descriptions.Item>
               </Descriptions>
-              <div>
-                <Text strong>Liên hệ chủ sân</Text>
-                <List
-                  size="small"
-                  dataSource={selectedBooking.ownerPhones}
-                  renderItem={(phone) => (
-                    <List.Item>
-                      <Space>
-                        <Tag color="green">SĐT</Tag>
-                        <Text>{phone}</Text>
-                      </Space>
-                    </List.Item>
-                  )}
-                />
-              </div>
-              <Button type="primary" block>
-                Liên hệ ngay
+              <Button
+                type="primary"
+                block
+                loading={bookingDetailLoading}
+                onClick={() => fetchBookingDetail(selectedBooking.bookingId)}
+              >
+                Xem chi tiết
               </Button>
+              {bookingDetail && bookingDetail.bookingId === selectedBooking.bookingId && (
+                <Descriptions column={1} size="small" bordered>
+                  <Descriptions.Item label="Thanh toán">
+                    {bookingDetail.invoiceStatus || "—"}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Tổng tiền">
+                    {Number(bookingDetail.price || 0).toLocaleString("vi-VN")} VND
+                  </Descriptions.Item>
+                  <Descriptions.Item label="Khung giờ chi tiết">
+                    <List
+                      size="small"
+                      dataSource={bookingDetail.bookingFields || []}
+                      renderItem={(item, idx) => (
+                        <List.Item>
+                          <Space>
+                            <Tag color="blue">Sân {item.indexField || idx + 1}</Tag>
+                            <span>
+                              {toTime(item.startHour)} - {toTime(item.endHour)}
+                            </span>
+                          </Space>
+                        </List.Item>
+                      )}
+                    />
+                  </Descriptions.Item>
+                  {bookingDetail.imgPayment && (
+                    <Descriptions.Item label="Ảnh thanh toán">
+                      <img src={bookingDetail.imgPayment} alt="Ảnh thanh toán" style={{ maxWidth: "100%" }} />
+                    </Descriptions.Item>
+                  )}
+                </Descriptions>
+              )}
             </Space>
           ) : (
             <Text type="secondary">Chưa có lịch đặt nào.</Text>
@@ -304,6 +406,18 @@ export default function UserInfoPage() {
 }
 
 function formatDate(iso) {
+  if (!iso) return "";
   const [year, month, day] = iso.split("-");
   return `${day}/${month}/${year}`;
+}
+
+function toTime(value = "") {
+  if (!value) return "";
+  if (value.includes("T")) {
+    const [, timePart = ""] = value.split("T");
+    const [h = "00", m = "00"] = timePart.split(":");
+    return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+  }
+  const parts = String(value).split(":");
+  return `${parts[0]?.padStart(2, "0") || "00"}:${parts[1]?.padStart(2, "0") || "00"}`;
 }

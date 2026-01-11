@@ -55,11 +55,16 @@ export default function LoginForm() {
       const role = String(payload.role || "").toUpperCase();
       document.cookie = `accessToken=${payload.accessToken}; path=/;`;
       document.cookie = `refreshToken=${payload.refreshToken}; path=/;`;
+      const emailFromPayload = payload.email || usernameTrim;
       const userInfo = encodeURIComponent(
         JSON.stringify({
           userId: payload.userId,
+          keycloakUserId: payload.keycloakUserId,
           role,
           username: usernameTrim,
+          name: payload.name,
+          msisdn: payload.msisdn,
+          email: emailFromPayload,
         })
       );
       document.cookie = `userInfo=${userInfo}; path=/;`;

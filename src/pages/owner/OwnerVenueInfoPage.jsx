@@ -4,8 +4,17 @@ import { ENDPOINTS } from "../../api/endpoints";
 import "./owner-venue-info.css";
 
 const statusClass = (status = "") => {
-  const lower = status.toLowerCase();
-  return lower.includes("ngung") || lower.includes("ngừng") ? "status-stop" : "status-ok";
+  const upper = status.toUpperCase();
+  if (upper === "INACTIVE") return "status-stop";
+  if (upper === "ACTIVE") return "status-ok";
+  return "status-pending";
+};
+
+const statusLabel = (status = "") => {
+  const upper = status.toUpperCase();
+  if (upper === "INACTIVE") return "Ngừng hoạt động";
+  if (upper === "ACTIVE") return "Hoạt động";
+  return "Chưa rõ";
 };
 
 const getCookie = (name) => {
@@ -27,6 +36,17 @@ const getOwnerIdFromCookie = () => {
   } catch {
     return "";
   }
+};
+
+const getAccessToken = () => {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("accessToken="))
+      ?.split("=")[1] || ""
+  );
 };
 
 export default function OwnerVenueInfoPage() {
@@ -52,7 +72,13 @@ export default function OwnerVenueInfoPage() {
         params.append("page", "0");
         params.append("size", "10");
         const url = `${ENDPOINTS.ownerFields}?${params.toString()}`;
-        const res = await fetch(url, { headers: { Accept: "application/json" } });
+        const token = getAccessToken();
+        const res = await fetch(url, {
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        });
         if (!res.ok) throw new Error("Không thể tải danh sách sân.");
         const data = await res.json().catch(() => ({}));
         const payload = data.result || {};
@@ -63,7 +89,7 @@ export default function OwnerVenueInfoPage() {
             name: item.name || "Chưa cập nhật",
             address: item.address || "",
             courts: item.quantity ?? 0,
-            status: "Hoạt động",
+            status: item.status || "",
             averageScore: item.averageRate ?? 0,
             ratingCount: item.totalComments ?? 0,
           }))
@@ -120,7 +146,7 @@ export default function OwnerVenueInfoPage() {
               <div className="venue-main">
                 <div className="venue-name-row">
                   <h3 className="venue-name">{venue.name}</h3>
-                  <span className={`status-badge ${statusClass(venue.status)}`}>{venue.status}</span>
+                  <span className={`status-badge ${statusClass(venue.status)}`}>{statusLabel(venue.status)}</span>
                 </div>
                 <div className="venue-meta">
                   <span className="meta-chip">{venue.address}</span>

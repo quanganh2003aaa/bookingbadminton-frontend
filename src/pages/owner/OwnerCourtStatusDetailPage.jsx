@@ -39,6 +39,17 @@ const getOwnerId = () => {
   }
 };
 
+const getAccessToken = () => {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith("accessToken="))
+      ?.split("=")[1] || ""
+  );
+};
+
 export default function OwnerCourtStatusDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -66,9 +77,13 @@ export default function OwnerCourtStatusDetailPage() {
       try {
         const params = new URLSearchParams();
         params.append("date", filterDate);
+        const token = getAccessToken();
         const res = await fetch(`${ENDPOINTS.ownerFieldBookingDetail(id)}?${params.toString()}`, {
           signal: controller.signal,
-          headers: { Accept: "application/json" },
+          headers: {
+            Accept: "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
         });
         if (!res.ok) throw new Error("Không thể tải danh sách lịch sân.");
         const payload = await res.json().catch(() => ({}));
@@ -116,9 +131,13 @@ export default function OwnerCourtStatusDetailPage() {
       setListError("");
       const params = new URLSearchParams();
       params.append("date", filterDate);
+      const token = getAccessToken();
       const res = await fetch(`${ENDPOINTS.ownerFieldBookingList(id)}?${params.toString()}`, {
         signal: controller.signal,
-        headers: { Accept: "application/json" },
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
       });
       if (!res.ok) throw new Error("Không thể tải danh sách đơn đặt sân.");
       const data = await res.json().catch(() => ({}));
