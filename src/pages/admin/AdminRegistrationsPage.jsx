@@ -64,6 +64,7 @@ const transformDetail = (item, fallbackId) => {
     updatedAt: item.updatedAt || "",
     qrImage:
       item.qrImage ||
+      item.imgQr ||
       item.qrCode ||
       item.qr ||
       item.bankQr ||
@@ -180,7 +181,7 @@ export default function AdminRegistrationsPage() {
             : `${ENDPOINTS.adminRegisterOwners}/${item.id}/reject`;
       }
       if (!url) throw new Error("Thiếu endpoint cập nhật trạng thái.");
-      const res = await fetch(url, { method: "POST" });
+      const res = await fetch(url, { method: "POST", headers: { Accept: "application/json" } });
       if (!res.ok) {
         const message =
           nextStatus === "approved"

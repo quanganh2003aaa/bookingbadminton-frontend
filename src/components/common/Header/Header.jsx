@@ -4,20 +4,35 @@ import "./header.css";
 import SearchBar from "../../search/SearchBar";
 import logo from "../../../assets/logo.png";
 
+const getCookie = (name) => {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`))
+      ?.split("=")[1] || ""
+  );
+};
+
+const getUserFromCookie = () => {
+  try {
+    const raw = decodeURIComponent(getCookie("userInfo") || "");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export default function Header() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("userProfile");
-      if (raw) {
-        setUser(JSON.parse(raw));
-      }
-    } catch {
-      setUser(null);
-    }
+    setUser(getUserFromCookie());
   }, []);
+
+  const displayName = user?.username || user?.email || user?.phone || "";
 
   return (
     <header className="site-header">
@@ -38,13 +53,9 @@ export default function Header() {
             </nav>
 
             <div className="profile">
-              {user ? (
-                <button
-                  className="profile-btn"
-                  type="button"
-                  onClick={() => navigate("/info-user")}
-                >
-                  {user.name || "Người dùng"} <span className="arrow">▼</span>
+              {displayName ? (
+                <button className="profile-btn" type="button" onClick={() => navigate("/info-user")}>
+                  {displayName} <span className="arrow">›</span>
                 </button>
               ) : (
                 <Link to="/login" className="profile-login">

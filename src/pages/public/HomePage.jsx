@@ -279,7 +279,9 @@ export default function HomePage() {
         <VenueDetailModal
           venue={selectedVenue}
           onClose={() => setSelectedVenue(null)}
-          onBook={() => navigate("/booking")}
+          onBook={() =>
+            navigate(`/booking?fieldId=${encodeURIComponent(selectedVenue.id || "")}`)
+          }
         />
       )}
     </div>

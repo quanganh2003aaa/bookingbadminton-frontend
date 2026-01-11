@@ -5,9 +5,28 @@ import "./owner-venue-info.css";
 
 const statusClass = (status = "") => {
   const lower = status.toLowerCase();
-  return lower.includes("ngung") || lower.includes("ngừng")
-    ? "status-stop"
-    : "status-ok";
+  return lower.includes("ngung") || lower.includes("ngừng") ? "status-stop" : "status-ok";
+};
+
+const getCookie = (name) => {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`))
+      ?.split("=")[1] || ""
+  );
+};
+
+const getOwnerIdFromCookie = () => {
+  try {
+    const raw = decodeURIComponent(getCookie("userInfo") || "");
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed.userId || parsed.ownerId || "";
+  } catch {
+    return "";
+  }
 };
 
 export default function OwnerVenueInfoPage() {
@@ -17,12 +36,13 @@ export default function OwnerVenueInfoPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const ownerId = localStorage.getItem("ownerId") || "";
+    const ownerId = getOwnerIdFromCookie();
     if (!ownerId) {
       setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
       setVenues([]);
       return;
     }
+
     const fetchVenues = async () => {
       setLoading(true);
       setError("");
@@ -32,15 +52,11 @@ export default function OwnerVenueInfoPage() {
         params.append("page", "0");
         params.append("size", "10");
         const url = `${ENDPOINTS.ownerFields}?${params.toString()}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
         if (!res.ok) throw new Error("Không thể tải danh sách sân.");
         const data = await res.json().catch(() => ({}));
         const payload = data.result || {};
-        const list = Array.isArray(payload.content)
-          ? payload.content
-          : Array.isArray(payload)
-          ? payload
-          : [];
+        const list = Array.isArray(payload.content) ? payload.content : Array.isArray(payload) ? payload : [];
         setVenues(
           list.map((item, idx) => ({
             id: item.id || `venue-${idx}`,
@@ -48,6 +64,8 @@ export default function OwnerVenueInfoPage() {
             address: item.address || "",
             courts: item.quantity ?? 0,
             status: "Hoạt động",
+            averageScore: item.averageRate ?? 0,
+            ratingCount: item.totalComments ?? 0,
           }))
         );
       } catch (err) {
@@ -83,53 +101,50 @@ export default function OwnerVenueInfoPage() {
         {!loading && venues.length === 0 && !error && (
           <div className="venue-item empty">Không tìm thấy sân</div>
         )}
-        {!loading && venues.map((venue, index) => (
-          <div
-            className="venue-item"
-            key={venue.id}
-            onClick={() => navigate(`/owner/venue/${venue.id}`)}
-            role="button"
-            tabIndex={0}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                navigate(`/owner/venue/${venue.id}`);
-              }
-            }}
-          >
-            <div className="venue-index">{String(index + 1).padStart(2, "0")}</div>
-            <div className="venue-main">
-              <div className="venue-name-row">
-                <h3 className="venue-name">{venue.name}</h3>
-                <span className={`status-badge ${statusClass(venue.status)}`}>
-                  {venue.status}
-                </span>
-              </div>
-              <div className="venue-meta">
-                <span className="meta-chip">{venue.address}</span>
-                <span className="meta-chip">Số sân: {venue.courts}</span>
-              </div>
-            </div>
-            <div className="venue-right">
-              <div className="score-tag">
-                {(venue.averageScore ?? 0).toFixed
-                  ? (venue.averageScore ?? 0).toFixed(1)
-                  : venue.averageScore ?? 0}{" "}
-                ★<span className="score-count">({venue.ratingCount ?? 0})</span>
-              </div>
-              <button
-                type="button"
-                className="detail-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
+        {!loading &&
+          venues.map((venue, index) => (
+            <div
+              className="venue-item"
+              key={venue.id}
+              onClick={() => navigate(`/owner/venue/${venue.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
                   navigate(`/owner/venue/${venue.id}`);
-                }}
-              >
-                Xem chi tiết
-              </button>
+                }
+              }}
+            >
+              <div className="venue-index">{String(index + 1).padStart(2, "0")}</div>
+              <div className="venue-main">
+                <div className="venue-name-row">
+                  <h3 className="venue-name">{venue.name}</h3>
+                  <span className={`status-badge ${statusClass(venue.status)}`}>{venue.status}</span>
+                </div>
+                <div className="venue-meta">
+                  <span className="meta-chip">{venue.address}</span>
+                  <span className="meta-chip">Số sân: {venue.courts}</span>
+                </div>
+              </div>
+              <div className="venue-right">
+                <div className="score-tag">
+                  {(venue.averageScore ?? 0).toFixed ? (venue.averageScore ?? 0).toFixed(1) : venue.averageScore ?? 0}{" "}
+                  •<span className="score-count">({venue.ratingCount ?? 0})</span>
+                </div>
+                <button
+                  type="button"
+                  className="detail-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/owner/venue/${venue.id}`);
+                  }}
+                >
+                  Xem chi tiết
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

@@ -60,6 +60,22 @@ export default function ManagerRegisterForm({
       </div>
 
       <div className="field">
+        <label htmlFor="ownerName">Họ và tên chủ sân</label>
+        <div className="input-wrap">
+          <input
+            id="ownerName"
+            name="ownerName"
+            type="text"
+            placeholder="Nhập họ và tên chủ sân"
+            value={values.ownerName}
+            onChange={handleChange}
+            required
+            readOnly={!allowEditAccount}
+          />
+        </div>
+      </div>
+
+      <div className="field">
         <label htmlFor="phone">Số điện thoại</label>
         <div className="input-wrap">
           <input
@@ -80,13 +96,13 @@ export default function ManagerRegisterForm({
       </div>
 
       <div className="field">
-        <label htmlFor="email">Gmail</label>
+        <label htmlFor="email">Email</label>
         <div className="input-wrap">
           <input
             id="email"
             name="email"
             type="email"
-            placeholder="Nhập gmail của bạn"
+            placeholder="Nhập email của bạn"
             value={values.email}
             onChange={handleChange}
             required
@@ -151,12 +167,12 @@ export default function ManagerRegisterForm({
       </button>
 
       {showLoginHint && (
-        <p className="signup-note">
-          Bạn đã có tài khoản quản lý?{" "}
-          <a className="link-accent" href="/owner-login">
-            Đăng nhập!
-          </a>
-        </p>
+      <p className="signup-note">
+        Bạn đã có tài khoản quản lý?{" "}
+        <a className="link-accent" href="/login">
+          Đăng nhập!
+        </a>
+      </p>
       )}
     </form>
   );

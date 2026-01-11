@@ -336,6 +336,20 @@
   text-align: center;
 }
 
+.qr-image-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
+.qr-image {
+  max-width: 320px;
+  width: 100%;
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(79, 70, 229, 0.15);
+}
+
 .note-text {
   color: #475569;
   font-size: 13px;

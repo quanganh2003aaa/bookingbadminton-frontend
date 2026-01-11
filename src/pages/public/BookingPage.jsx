@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { getFieldBookingsByDay, getFieldQuantity, getVenueDetail } from "../../services/venueService";
+import { ENDPOINTS } from "../../api/endpoints";
 import "./bookingPage.css";
 
 const COURT_COL_WIDTH = 100;
@@ -78,6 +79,22 @@ const statusColors = {
   selected: "#0a5f26",
 };
 
+const getUserIdFromCookie = () => {
+  try {
+    const raw =
+      (document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("userInfo=")) || ""
+      ).split("=")[1] || "";
+    if (!raw) return "";
+    const parsed = JSON.parse(decodeURIComponent(raw));
+    return parsed?.userId || "";
+  } catch {
+    return "";
+  }
+};
+
 function applyBookings(slots, bookings) {
   const next = slots.map((s) => ({ ...s }));
   bookings.forEach((b) => {
@@ -100,6 +117,7 @@ export default function BookingPage() {
   const [rates, setRates] = useState([]);
   const [courtsCount, setCourtsCount] = useState(1);
   const [bookingsByCourt, setBookingsByCourt] = useState([]);
+  const [subFieldMeta, setSubFieldMeta] = useState([]);
   const [error, setError] = useState("");
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [loadingBookings, setLoadingBookings] = useState(false);
@@ -198,25 +216,38 @@ export default function BookingPage() {
     setBaseSlots(slots);
   }, [selectedDate, todayIso, operatingHours, rates]);
 
-  const toSlotTime = (value = "") => {
-    if (value.includes("T")) {
-      const timePart = value.split("T")[1] || "";
-      const [h = "00", m = "00"] = timePart.split(":");
-      return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
-    }
-    return toHour(value);
-  };
+const toSlotTime = (value = "") => {
+  if (value.includes("T")) {
+    const timePart = value.split("T")[1] || "";
+    const [h = "00", m = "00"] = timePart.split(":");
+    return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+  }
+  return toHour(value);
+};
 
-  useEffect(() => {
-    if (!fieldId) return;
-    setLoadingBookings(true);
-    setError("");
-    (async () => {
+const mapBookingStatus = (status = "") => {
+  const normalized = String(status || "").toUpperCase();
+  if (normalized === "ACCEPT" || normalized === "PENDING") return "booked";
+  if (normalized === "INACCEPT") return "booked";
+  return "booked";
+};
+
+useEffect(() => {
+  if (!fieldId) return;
+  setLoadingBookings(true);
+  setError("");
+  (async () => {
       try {
         const res = await getFieldBookingsByDay(fieldId, selectedDate);
         const payload = res?.result || {};
         const subFields = Array.isArray(payload.subFields) ? payload.subFields : [];
         if (subFields.length) setCourtsCount(subFields.length);
+        setSubFieldMeta(
+          subFields.map((sf, idx) => ({
+            id: sf.id || `sf-${idx}`,
+            name: `Sân ${sf.indexField || idx + 1}`,
+          }))
+        );
 
         const mappedByCourt = subFields.map((sf, idx) => {
           const list = Array.isArray(sf.bookings) ? sf.bookings : [];
@@ -224,7 +255,7 @@ export default function BookingPage() {
             .map((b, j) => ({
               start: toSlotTime(b.startHour || b.start || ""),
               end: toSlotTime(b.endHour || b.end || ""),
-              status: "booked",
+              status: mapBookingStatus(b.status),
               id: b.bookingId || b.id || `${idx}-${j}`,
             }))
             .filter((b) => b.start && b.end);
@@ -247,13 +278,15 @@ export default function BookingPage() {
     const courtsData = Array.from({ length: count }, (_, i) => {
       const courtBookings = bookingsByCourt[i] || [];
       const template = applyBookings(baseSlots, courtBookings);
+      const meta = subFieldMeta[i];
       return {
-        name: `Sân ${i + 1}`,
+        id: meta?.id || `sf-${i + 1}`,
+        name: meta?.name || `Sân ${i + 1}`,
         slots: template.map((s) => ({ ...s, selected: false })),
       };
     });
     setCourts(courtsData);
-  }, [baseSlots, bookingsByCourt, courtsCount]);
+  }, [baseSlots, bookingsByCourt, courtsCount, subFieldMeta]);
 
   useEffect(() => {
     if (!fieldId) return;
@@ -329,6 +362,7 @@ export default function BookingPage() {
           .filter((s) => s.selected)
           .map((s) => ({
             court: court.name,
+            subFieldId: court.id,
             start: s.label,
             end: formatTimeLabel(s.minutes + slotDuration),
             price: s.price,
@@ -436,18 +470,53 @@ export default function BookingPage() {
             className="booking-action"
             type="button"
             disabled={!selectionDetails.length}
-            onClick={() =>
-              navigate("/paying", {
-                state: {
-                  fieldId,
+            onClick={async () => {
+              if (!selectionDetails.length) return;
+              try {
+                const userId = getUserIdFromCookie();
+                if (!userId) {
+                  navigate("/login", {
+                    replace: true,
+                    state: { redirectTo: window.location.pathname + window.location.search },
+                  });
+                  return;
+                }
+                const listBookingField = selectionDetails.map((sel) => ({
+                  subFieldId: sel.subFieldId,
+                  startHour: `${sel.start}:00`.slice(0, 8),
+                  endHour: `${sel.end}:00`.slice(0, 8),
                   date: selectedDate,
-                  venueName: fieldInfo?.name || "San cau long",
-                  address: fieldInfo?.address || "",
-                  selections: selectionDetails,
-                  total: totalPrice,
-                },
-              })
-            }
+                }));
+                const payload = {
+                  parentFieldId: fieldId,
+                  userId,
+                  listBookingField,
+                };
+                const res = await fetch(ENDPOINTS.bookingPending, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", Accept: "application/json" },
+                  body: JSON.stringify(payload),
+                });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) {
+                  throw new Error(data?.message || "Không thể tạo đơn đặt sân.");
+                }
+                const result = data?.result || {};
+                navigate("/paying", {
+                  state: {
+                    fieldId,
+                    date: selectedDate,
+                    venueName: result.nameField || fieldInfo?.name || "",
+                    address: result.addressField || fieldInfo?.address || "",
+                    selections: selectionDetails,
+                    total: result.totalAmount ?? totalPrice,
+                    bookingPending: result,
+                  },
+                });
+              } catch (err) {
+                setError(err.message || "Không thể tạo đơn đặt sân.");
+              }
+            }}
           >
             Tiến hành đặt sân
           </button>

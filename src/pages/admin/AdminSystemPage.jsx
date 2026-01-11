@@ -28,7 +28,7 @@ export default function AdminSystemPage() {
       if (lockedFilter !== "all") params.append("locked", lockedFilter === "locked");
       const query = params.toString();
       const url = `${ENDPOINTS.adminUsers}${query ? `?${query}` : ""}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { headers: { Accept: "application/json" } });
       if (!res.ok) throw new Error("Không thể tải danh sách người dùng.");
       const data = await res.json().catch(() => ({}));
       const payload = data.result || {};

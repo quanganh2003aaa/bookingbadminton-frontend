@@ -8,7 +8,6 @@ import HomePage from "../pages/public/HomePage";
 import LoginPage from "../pages/auth/LoginPage";
 import ManagerRegisterPage from "../pages/auth/ManagerRegisterPage";
 import NotFoundPage from "../pages/public/NotFoundPage";
-import OwnerLoginPage from "../pages/auth/OwnerLoginPage";
 import PayingPage from "../pages/public/PayingPage";
 import RegisterPage from "../pages/auth/RegisterPage";
 import UserInfoPage from "../pages/public/UserInfoPage";
@@ -36,7 +35,6 @@ const authRoutes = [
   { path: "/login", element: <LoginPage /> },
   { path: "/register", element: <RegisterPage /> },
   { path: "/forgot-password", element: <ForgotPasswordPage /> },
-  { path: "/owner-login", element: <OwnerLoginPage /> },
   { path: "/manager-register", element: <ManagerRegisterPage /> },
 ].map(({ path, element }) => ({
   path,

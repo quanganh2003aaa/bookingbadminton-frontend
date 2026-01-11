@@ -29,8 +29,29 @@ export default function OwnerCourtStatusPage() {
   const totalPages = Math.max(1, Math.ceil((total || fields.length) / pageSize));
   const currentPage = Math.max(1, Math.min(page, totalPages));
 
+  const getCookie = (name) => {
+    if (typeof document === "undefined") return "";
+    return (
+      document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith(`${name}=`))
+        ?.split("=")[1] || ""
+    );
+  };
+
+  const getOwnerId = () => {
+    try {
+      const raw = decodeURIComponent(getCookie("userInfo") || "");
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed.userId || parsed.ownerId || "";
+    } catch {
+      return "";
+    }
+  };
+
   useEffect(() => {
-    const ownerId = localStorage.getItem("ownerId") || "";
+    const ownerId = getOwnerId();
     if (!ownerId) {
       setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
       setFields([]);
@@ -45,7 +66,7 @@ export default function OwnerCourtStatusPage() {
         params.append("page", String(Math.max(currentPage - 1, 0)));
         params.append("size", String(pageSize));
         const url = `${ENDPOINTS.ownerFieldBookings}?${params.toString()}`;
-        const res = await fetch(url);
+        const res = await fetch(url, { headers: { Accept: "application/json" } });
         if (!res.ok) throw new Error("Không thể tải danh sách sân.");
         const data = await res.json().catch(() => ({}));
         const payload = data.result || {};

@@ -29,7 +29,7 @@ export const getAllVenues = async (params = {}) => {
 export const getVenueDetail = async (id) => {
   if (!id) throw new Error("Missing field id");
   try {
-    const response = await api.get(`/fields/${encodeURIComponent(id)}/user-detail`);
+    const response = await api.get(`/fields/${encodeURIComponent(id)}/detail`);
     return response.data;
   } catch (error) {
     console.error("Error fetching venue detail:", error);
@@ -45,9 +45,13 @@ export const getVenueDetail = async (id) => {
 export const getFieldBookingsByDay = async (id, date) => {
   if (!id) throw new Error("Missing field id");
   try {
-    const response = await api.get(`/bookings/field/${encodeURIComponent(id)}/by-day`, {
-      params: { date },
-    });
+    // BE cập nhật: lấy lịch sân theo ngày qua endpoint owner/field-booking/{id}?date=yyyy-MM-dd
+    const response = await api.get(
+      `/owner/field-booking/${encodeURIComponent(id)}`,
+      {
+        params: { date },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error("Error fetching field bookings:", error);

@@ -38,47 +38,62 @@ export default function OwnerCourtStatusDetailPage() {
   const [bookings, setBookings] = useState([]);
   const [bookingError, setBookingError] = useState("");
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [fieldName, setFieldName] = useState(`#${id}`);
 
   const applyFilters = () => {
     // placeholder for future BE-powered filters on grid if needed
   };
 
   useEffect(() => {
-    const ownerId = localStorage.getItem("ownerId") || "";
-    if (!ownerId) {
-      setBookingError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
-      return;
-    }
     const controller = new AbortController();
     (async () => {
       setBookingLoading(true);
       setBookingError("");
       try {
         const params = new URLSearchParams();
-        params.append("ownerId", ownerId);
-        params.append("fieldId", id);
         params.append("date", filterDate);
-        const res = await fetch(`${ENDPOINTS.ownerFieldBookings}?${params.toString()}`, { signal: controller.signal });
+        const res = await fetch(`${ENDPOINTS.ownerFieldBookingDetail(id)}?${params.toString()}`, {
+          signal: controller.signal,
+          headers: { Accept: "application/json" },
+        });
         if (!res.ok) throw new Error("Không thể tải danh sách đơn đặt sân.");
         const payload = await res.json().catch(() => ({}));
-        const list = Array.isArray(payload?.result)
-          ? payload.result
-          : Array.isArray(payload?.content)
-          ? payload.content
-          : [];
-        const mapped = list.map((item, idx) => ({
-          id: item.bookingId || item.id || `booking-${idx}`,
-          subField: item.subFieldIndex || item.indexField || item.subField || "",
-          start: toTime(item.startHour || item.start || ""),
-          end: toTime(item.endHour || item.end || ""),
-          phone: item.msisdn || item.phone || "",
-          status: (item.status || "PENDING").toUpperCase(),
-        }));
-        setBookings(mapped);
+        const result = payload?.result || {};
+        setFieldName(result.fieldName || `#${id}`);
+        const subFields = Array.isArray(result.subFields) ? result.subFields : [];
+        const courts = subFields.map((sf, idx) => {
+          const bookingsSf = Array.isArray(sf.bookings)
+            ? sf.bookings.map((b, bi) => ({
+                id: b.bookingId || b.id || `booking-${bi}`,
+                subField: sf.indexField || idx + 1,
+                start: toTime(b.startHour || b.start || ""),
+                end: toTime(b.endHour || b.end || ""),
+                phone: b.msisdn || b.phone || "",
+                status: "booked",
+              }))
+            : [];
+          return {
+            id: sf.id || `sub-${idx}`,
+            name: `Sân ${sf.indexField || idx + 1}`,
+            bookings: bookingsSf,
+          };
+        });
+        setFilteredCourts(courts);
+        setBookings(
+          courts.flatMap((c) =>
+            (c.bookings || []).map((b) => ({
+              ...b,
+              subField: c.name,
+            }))
+          )
+        );
+        if (result.startTime) setFilterStart(toTime(result.startTime));
+        if (result.endTime) setFilterEnd(toTime(result.endTime));
       } catch (err) {
         if (err.name === "AbortError") return;
         setBookingError(err.message || "Có lỗi xảy ra.");
         setBookings([]);
+        setFilteredCourts([]);
       } finally {
         if (!controller.signal.aborted) setBookingLoading(false);
       }
@@ -97,7 +112,7 @@ export default function OwnerCourtStatusDetailPage() {
       <div className="detail-header">
         <div>
           <p className="owner-subtitle">Tình trạng sân</p>
-          <h1 className="owner-venues-title">Chi tiết sân #{id}</h1>
+          <h1 className="owner-venues-title">Chi tiết sân {fieldName}</h1>
         </div>
         <button type="button" className="ghost-btn" onClick={() => navigate(-1)}>
           Quay lại

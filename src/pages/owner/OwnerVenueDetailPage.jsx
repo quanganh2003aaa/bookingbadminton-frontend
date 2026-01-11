@@ -49,26 +49,50 @@ export default function OwnerVenueDetailPage() {
   const [slots, setSlots] = useState([]);
   const [backupSlots, setBackupSlots] = useState([]);
   const [images, setImages] = useState([]);
+  const [qrImage, setQrImage] = useState("");
   const [errors, setErrors] = useState({});
   const fileInputRef = useRef(null);
+  const qrInputRef = useRef(null);
   const [slotsLoaded, setSlotsLoaded] = useState(false);
   const [imagesLoaded, setImagesLoaded] = useState(false);
 
-  useEffect(() => {
-    const ownerId = localStorage.getItem("ownerId") || "";
-    if (!ownerId) {
-      setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
-      return;
+  const getCookie = (name) => {
+    if (typeof document === "undefined") return "";
+    return (
+      document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith(`${name}=`))
+        ?.split("=")[1] || ""
+    );
+  };
+
+  const getOwnerIdFromCookie = () => {
+    try {
+      const raw = decodeURIComponent(getCookie("userInfo") || "");
+      const parsed = raw ? JSON.parse(raw) : {};
+      return parsed.userId || parsed.ownerId || "";
+    } catch {
+      return "";
     }
+  };
+
+  useEffect(() => {
     const fetchDetail = async () => {
       setLoading(true);
       setError("");
       try {
+        const ownerId = getOwnerIdFromCookie();
         const url =
-          typeof ENDPOINTS.ownerFieldDetailWithOwner === "function"
-            ? ENDPOINTS.ownerFieldDetailWithOwner(id, ownerId)
-            : `${ENDPOINTS.ownerFields}/${id}?ownerId=${ownerId}`;
-        const res = await fetch(url);
+          typeof ENDPOINTS.ownerFieldDetailByOwner === "function"
+            ? ENDPOINTS.ownerFieldDetailByOwner(id)
+            : `${ENDPOINTS.ownerFields}/${id}/detail`;
+        const body = ownerId ? JSON.stringify({ ownerId }) : undefined;
+        const res = await fetch(url, {
+          method: body ? "POST" : "GET",
+          headers: { Accept: "application/json", "Content-Type": body ? "application/json" : undefined },
+          body,
+        });
         if (!res.ok) throw new Error("Không thể tải chi tiết sân.");
         const data = await res.json().catch(() => ({}));
         const item = data.result || {};
@@ -82,6 +106,7 @@ export default function OwnerVenueDetailPage() {
           mapLink: item.linkMap || "",
           quantity: item.quantity ?? 0,
         });
+        setQrImage(item.imgQr || item.qrImage || item.qr || item.bankQr || item.qrUrl || "");
       } catch (err) {
         setError(err.message || "Có lỗi xảy ra khi tải chi tiết sân.");
       } finally {
@@ -197,7 +222,7 @@ export default function OwnerVenueDetailPage() {
   const handleToggleEditInfo = () => {
     if (isEditingInfo) {
       if (!validateInfo()) return;
-      const ownerId = localStorage.getItem("ownerId") || "";
+      const ownerId = getOwnerIdFromCookie();
       if (!ownerId) {
         setError("Không tìm thấy ownerId. Vui lòng đăng nhập lại.");
         return;
@@ -208,14 +233,13 @@ export default function OwnerVenueDetailPage() {
         setInfoMessage("");
         try {
           const url =
-            typeof ENDPOINTS.ownerFieldUpdateWithOwner === "function"
-              ? ENDPOINTS.ownerFieldUpdateWithOwner(id, ownerId)
-              : `${ENDPOINTS.ownerFields}/${id}?ownerId=${ownerId}`;
+            typeof ENDPOINTS.ownerFieldUpdateByOwner === "function"
+              ? ENDPOINTS.ownerFieldUpdateByOwner(id)
+              : `${ENDPOINTS.ownerFields}/${id}/owner`;
           const payload = {
             ownerId,
             name: form.name.trim(),
             address: form.address.trim(),
-            ratePoint: 0,
             quantity: Number(form.quantity) || 0,
             mobileContact: form.contact.trim(),
             startTime: form.openTime || null,
@@ -315,8 +339,8 @@ export default function OwnerVenueDetailPage() {
       setPricingMessage("");
       try {
         const res = await fetch(target, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
+          method: "PUT",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify(payload),
         });
         if (!res.ok) {
@@ -372,6 +396,21 @@ export default function OwnerVenueDetailPage() {
       }
     };
     upload();
+  };
+
+  const handlePickQr = () => {
+    qrInputRef.current?.click();
+  };
+
+  const handleQrSelected = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setQrImage(reader.result || "");
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
   };
 
   const fetchTimeSlots = useCallback(async () => {
@@ -630,19 +669,48 @@ export default function OwnerVenueDetailPage() {
         </section>
       </div>
 
-      {form.mapLink && (
-        <section className="detail-card map-card">
-          <h3>Bản đồ</h3>
-          <div className="map-frame">
-            <iframe
-              src={form.mapLink}
-              title="Bản đồ sân"
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-        </section>
+      {(form.mapLink || qrImage) && (
+        <div className="map-qr-wrapper">
+          {form.mapLink && (
+            <section className="detail-card map-card">
+              <h3>Bản đồ</h3>
+              <div className="map-frame">
+                <iframe
+                  src={form.mapLink}
+                  title="Bản đồ sân"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </section>
+          )}
+          <section className="detail-card qr-card">
+            <div className="qr-header">
+              <div>
+                <h3>QR code ngân hàng</h3>
+                <p className="qr-subtitle">Dùng để thanh toán đặt sân</p>
+              </div>
+              <button type="button" className="ghost-btn" onClick={handlePickQr}>
+                Thay đổi QR
+              </button>
+              <input
+                ref={qrInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: "none" }}
+                onChange={handleQrSelected}
+              />
+            </div>
+            {qrImage ? (
+              <div className="qr-frame">
+                <img src={qrImage} alt="QR thanh toán" />
+              </div>
+            ) : (
+              <div className="map-placeholder">Chưa có ảnh QR</div>
+            )}
+          </section>
+        </div>
       )}
 
       <section className="detail-card gallery-card">

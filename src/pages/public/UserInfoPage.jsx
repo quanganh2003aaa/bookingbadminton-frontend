@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Avatar,
   Button,
@@ -14,51 +14,91 @@ import {
   Tag,
   Typography,
   List,
+  message,
 } from "antd";
 import { UserOutlined, PhoneOutlined, MailOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
+import { ENDPOINTS } from "../../api/endpoints";
 import "./userInfoPage.css";
 
 const { Title, Text } = Typography;
 
-const mockUser = {
-  name: "Phạm Văn A",
-  email: "phamvana@example.com",
-  phone: "0987654321",
-  password: "********",
-};
-
+// Tạm thời giữ dữ liệu mẫu cho tab Lịch đặt
 const mockBookings = [
   {
     id: 1,
     date: "2026-01-01",
-    venue: "Sân cầu lông Duy Tiến",
+    venue: "Sân cầu lông Duy Tân",
     address: "Km 10, Nguyễn Trãi, Thanh Xuân, Hà Nội",
     timeRange: "17:00 - 19:00",
     ownerPhones: ["0987654321", "0966666666"],
   },
-  {
-    id: 2,
-    date: "2026-01-02",
-    venue: "Sân cầu lông Thanh Xuân",
-    address: "123 Nguyễn Trãi, Thanh Xuân, Hà Nội",
-    timeRange: "07:00 - 09:00",
-    ownerPhones: ["0901234567", "0987654321"],
-  },
-  {
-    id: 3,
-    date: "2026-01-03",
-    venue: "Sân cầu lông Hoàng Mai",
-    address: "75 Giải Phóng, Hoàng Mai, Hà Nội",
-    timeRange: "15:00 - 17:00",
-    ownerPhones: ["0911222333", "0966666666"],
-  },
 ];
+
+const getUserFromCookie = () => {
+  try {
+    const raw =
+      (document.cookie
+        .split(";")
+        .map((c) => c.trim())
+        .find((c) => c.startsWith("userInfo=")) || ""
+      ).split("=")[1] || "";
+    return raw ? JSON.parse(decodeURIComponent(raw)) : {};
+  } catch {
+    return {};
+  }
+};
+
+const getCookie = (name) => {
+  if (typeof document === "undefined") return "";
+  return (
+    document.cookie
+      .split(";")
+      .map((c) => c.trim())
+      .find((c) => c.startsWith(`${name}=`))
+      ?.split("=")[1] || ""
+  );
+};
+
+const clearCookie = (name) => {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+};
 
 export default function UserInfoPage() {
   const [selectedId, setSelectedId] = useState(mockBookings[0]?.id ?? null);
   const [activeTab, setActiveTab] = useState("bookings");
-  const [profile, setProfile] = useState(mockUser);
+  const [profile, setProfile] = useState({ name: "", email: "", phone: "", avatar: "" });
   const [isEditing, setIsEditing] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const navigate = useNavigate();
+
+  const userCookie = useMemo(getUserFromCookie, []);
+
+  useEffect(() => {
+    const userId = userCookie.userId || "";
+    if (!userId) return;
+    (async () => {
+      try {
+        const res = await fetch(ENDPOINTS.userDetailInfo, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Accept: "application/json" },
+          body: JSON.stringify({ userId }),
+        });
+        if (!res.ok) return;
+        const data = await res.json().catch(() => ({}));
+        const result = data?.result || {};
+        setProfile({
+          name: result.nameUser || userCookie.username || "",
+          email: result.email || userCookie.email || "",
+          phone: result.msidn || result.msisdn || userCookie.phone || "",
+          avatar: result.avatar || "",
+        });
+      } catch {
+        // ignore errors, still clear local state
+      }
+    })();
+  }, [userCookie]);
 
   const selectedBooking = useMemo(
     () => mockBookings.find((b) => b.id === selectedId) || mockBookings[0],
@@ -90,6 +130,29 @@ export default function UserInfoPage() {
     setIsEditing(false);
   };
 
+  const handleLogout = async () => {
+    if (loggingOut) return;
+    setLoggingOut(true);
+    try {
+      const refreshToken = getCookie("refreshToken");
+      await fetch(ENDPOINTS.logout, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken }),
+      });
+    } catch {
+      // ignore errors, still clear local state
+    } finally {
+      clearCookie("accessToken");
+      clearCookie("refreshToken");
+      clearCookie("userInfo");
+      localStorage.removeItem("userProfile");
+      message.success("Đăng xuất thành công");
+      setLoggingOut(false);
+      navigate("/login");
+    }
+  };
+
   const profileTab = (
     <Row gutter={[16, 16]}>
       <Col xs={24} lg={14}>
@@ -119,13 +182,6 @@ export default function UserInfoPage() {
                 prefix={<PhoneOutlined />}
               />
             </Form.Item>
-            <Form.Item label="Mật khẩu">
-              <Input.Password
-                value={profile.password}
-                disabled={!isEditing}
-                onChange={(e) => setProfile((p) => ({ ...p, password: e.target.value }))}
-              />
-            </Form.Item>
             <Space>
               <Button onClick={() => setIsEditing((prev) => !prev)} type={isEditing ? "default" : "primary"}>
                 {isEditing ? "Hủy" : "Chỉnh sửa"}
@@ -142,9 +198,9 @@ export default function UserInfoPage() {
       <Col xs={24} lg={10}>
         <Card title="Ảnh đại diện" className="ui-card avatar-card">
           <div className="avatar-block">
-            <Avatar size={120} icon={<UserOutlined />} />
-            <Text type="secondary">Cập nhật ảnh đại diện để tài khoản sinh động hơn.</Text>
-            <Button>Đổi ảnh</Button>
+            {profile.avatar ? <Avatar size={120} src={profile.avatar} /> : <Avatar size={120} icon={<UserOutlined />} />}
+            <Text type="secondary">Chức năng cập nhật ảnh sẽ hỗ trợ sau.</Text>
+            <Button disabled>Đổi ảnh</Button>
           </div>
         </Card>
       </Col>
@@ -211,21 +267,26 @@ export default function UserInfoPage() {
     <div className="user-info-page">
       <div className="user-info-shell">
         <Card className="ui-card hero-card">
-          <Space align="start" style={{ width: "100%" }} size={16}>
-            <Avatar size={64} icon={<UserOutlined />} />
-            <div className="hero-meta">
-              <Title level={4} className="no-margin">
-                {profile.name}
-              </Title>
-              <Space size={8} wrap>
-                <Tag icon={<MailOutlined />} color="blue">
-                  {profile.email}
-                </Tag>
-                <Tag icon={<PhoneOutlined />} color="green">
-                  {profile.phone}
-                </Tag>
-              </Space>
-            </div>
+          <Space align="start" style={{ width: "100%", justifyContent: "space-between" }} size={16}>
+            <Space align="start" size={16}>
+              {profile.avatar ? <Avatar size={64} src={profile.avatar} /> : <Avatar size={64} icon={<UserOutlined />} />}
+              <div className="hero-meta">
+                <Title level={4} className="no-margin">
+                  {profile.name || "Người dùng"}
+                </Title>
+                <Space size={8} wrap>
+                  <Tag icon={<MailOutlined />} color="blue">
+                    {profile.email || "Chưa cập nhật"}
+                  </Tag>
+                  <Tag icon={<PhoneOutlined />} color="green">
+                    {profile.phone || "Chưa cập nhật"}
+                  </Tag>
+                </Space>
+              </div>
+            </Space>
+            <Button danger onClick={handleLogout} loading={loggingOut}>
+              Đăng xuất
+            </Button>
           </Space>
         </Card>
 

@@ -32,6 +32,7 @@ export default function ManagerRegisterPage() {
     () =>
       isOwnerContext
         ? {
+            ownerName: storedOwner?.nameOwner || storedOwner?.name || "Chủ sân",
             phone: storedOwner?.msisdn || "",
             email: storedOwner?.gmail || "",
             password: "",
@@ -39,13 +40,14 @@ export default function ManagerRegisterPage() {
           }
         : autoPrefill
         ? {
+            ownerName: "Nguyễn Văn A",
             phone: "0987654321",
             email: "owner@example.com",
             password: "12345678",
             confirmPassword: "12345678",
           }
-        : { phone: "", email: "", password: "", confirmPassword: "" },
-    [autoPrefill, isOwnerContext, storedOwner?.gmail, storedOwner?.msisdn]
+        : { ownerName: "", phone: "", email: "", password: "", confirmPassword: "" },
+    [autoPrefill, isOwnerContext, storedOwner?.gmail, storedOwner?.msisdn, storedOwner?.name, storedOwner?.nameOwner]
   );
 
   const [step, setStep] = useState(initialStep);
@@ -63,44 +65,43 @@ export default function ManagerRegisterPage() {
   const [passcodeState, setPasscodeState] = useState(blankState);
   const [confirmState, setConfirmState] = useState(blankState);
 
-  const buildRegisterPayload = () => ({
-    account: {
-      password: registerValues.password,
-      gmail: registerValues.email.trim(),
-      msisdn: registerValues.phone,
-    },
-  });
-
-  const sendPasscode = async () => {
+  const sendPasscode = async (targetVenueValues = venueValues) => {
     setPasscodeState({ ...blankState, loading: true });
     try {
-      const payload = isOwnerContext
-        ? {
-            account: {
-              ownerId: storedOwner?.ownerId,
-              gmail: storedOwner?.gmail || registerValues.email.trim(),
-              msisdn: storedOwner?.msisdn || registerValues.phone,
-              password: registerValues.password,
-            },
-          }
-        : buildRegisterPayload();
-      const res = await fetch(ENDPOINTS.registerOwnerPasscode, {
+      const phoneNumber = storedOwner?.msisdn || registerValues.phone;
+      const payload = {
+        name: targetVenueValues.name,
+        address: targetVenueValues.address,
+        mobileContact: targetVenueValues.phone,
+        gmail: (storedOwner?.gmail || registerValues.email || "").trim(),
+        password: registerValues.password,
+        msiSdn: phoneNumber,
+        msisdn: phoneNumber,
+        active: "PENDING",
+        nameOwner: registerValues.ownerName || storedOwner?.nameOwner || storedOwner?.name || "",
+        linkMap: targetVenueValues.mapLink,
+      };
+
+      const res = await fetch(ENDPOINTS.registerOwner, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Gửi passcode thất bại. Vui lòng thử lại.");
-      }
       const data = await res.json().catch(() => ({}));
-      const newAccountId = data?.result?.accountId || data?.accountId || "";
+      if (!res.ok) {
+        const conflictMsg =
+          res.status === 409
+            ? "Email đã được đăng ký. Vui lòng dùng thông tin khác."
+            : "";
+        throw new Error(conflictMsg || data.message || "Gửi OTP thất bại. Vui lòng thử lại.");
+      }
+      const newAccountId = data?.result?.accountId || data?.data?.accountId || data?.accountId || "";
       if (newAccountId) setAccountId(newAccountId);
       if (!newAccountId && storedOwner?.ownerId) setAccountId(storedOwner.ownerId);
       setPasscodeState({
         loading: false,
         error: "",
-        success: "Passcode đã được gửi tới gmail của bạn.",
+        success: data?.message || "OTP đã được gửi tới email của bạn.",
       });
       setStep(3);
     } catch (err) {
@@ -114,49 +115,49 @@ export default function ManagerRegisterPage() {
       ...vals,
       imgQr: vals.imgQr || uploads[0]?.dataUrl || uploads[0]?.url || prev.imgQr,
     }));
-    await sendPasscode();
+    const mergedVenue = {
+      ...venueValues,
+      ...vals,
+      imgQr: vals.imgQr || uploads[0]?.dataUrl || uploads[0]?.url || venueValues.imgQr,
+    };
+    await sendPasscode(mergedVenue);
   };
 
   const handleConfirmRegister = async () => {
     const trimmedCode = passcode.trim();
     setConfirmState({ ...blankState, loading: true });
-    if (!trimmedCode || trimmedCode.length !== 6) {
-      setConfirmState({ ...blankState, error: "Vui lòng nhập passcode gồm 6 số." });
-      return;
-    }
-    if (!accountId) {
-      setConfirmState({
-        ...blankState,
-        error: "Không tìm thấy tài khoản, vui lòng gửi lại passcode.",
-      });
+    if (!trimmedCode) {
+      setConfirmState({ ...blankState, error: "Vui lòng nhập OTP." });
       return;
     }
 
     try {
-      const payload = {
-        accountId: accountId || storedOwner?.ownerId || "",
-        ownerId: accountId || storedOwner?.ownerId || "",
-        code: trimmedCode,
-        register: {
-          name: venueValues.name,
-          address: venueValues.address,
-          mobileContact: venueValues.phone,
-          linkMap: venueValues.mapLink,
-          imgQr: venueValues.imgQr || uploads[0]?.dataUrl || uploads[0]?.url || "",
-        },
-      };
-
-      const res = await fetch(ENDPOINTS.registerOwnerConfirm, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Đăng ký quản lý thất bại.");
+      const email = (storedOwner?.gmail || registerValues.email || "").trim();
+      const formData = new FormData();
+      formData.append(
+        "request",
+        JSON.stringify({
+          email,
+          otp: trimmedCode,
+        })
+      );
+      const qrFile = uploads[0]?.file;
+      if (qrFile instanceof Blob) {
+        formData.append("file", qrFile, qrFile.name || "qr.png");
       }
 
-      const successMessage = isOwnerContext
+      const res = await fetch(ENDPOINTS.verifyOtpRegister, {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.message || "Xác thực OTP thất bại.");
+      }
+
+      const successMessage = data?.message
+        ? data.message
+        : isOwnerContext
         ? "Đăng ký thêm sân thành công! Đang chuyển về trang chủ owner..."
         : "Đăng ký thành công! Đang chuyển đến đăng nhập...";
       setConfirmState({
@@ -164,7 +165,7 @@ export default function ManagerRegisterPage() {
         success: successMessage,
       });
       setTimeout(() => {
-        window.location.assign(isOwnerContext ? "/owner" : "/owner-login");
+        window.location.assign(isOwnerContext ? "/owner" : "/login");
       }, 900);
     } catch (err) {
       setConfirmState({ loading: false, error: err.message, success: "" });

@@ -34,41 +34,33 @@ export default function RegisterForm() {
     setError("");
     setSuccess("");
 
-    // trims
     const trimmedName = values.fullName.trim();
     const trimmedEmail = values.email.trim();
 
-    // validations
-    if (trimmedName.length < 1 || trimmedName.length > 50) {
-      setError("Tên cần từ 1-50 ký tự.");
+    if (!trimmedName || trimmedName.length > 50) {
+      setError("Vui lòng nhập họ và tên (từ 1 đến 50 ký tự).");
       return;
     }
 
-    const phoneRegex = /^0[0-9]{9}$/;
+    const phoneRegex = /^0\d{9}$/;
     if (!phoneRegex.test(values.phone)) {
-      setError("Số điện thoại phải bắt đầu bằng 0 và đủ 10 số.");
+      setError("Số điện thoại phải bắt đầu bằng 0 và gồm 10 chữ số.");
       return;
     }
 
     const emailRegex = /^[\w.-]+@([\w-]+\.)+[\w-]{2,}$/;
-    const emailNoSpecial = /^[A-Za-z0-9@._-]+$/;
-    if (
-      !emailRegex.test(trimmedEmail) ||
-      trimmedEmail.length > 50 ||
-      !emailNoSpecial.test(trimmedEmail)
-    ) {
-      setError("Gmail không hợp lệ hoặc vượt quá 50 ký tự.");
+    if (!emailRegex.test(trimmedEmail) || trimmedEmail.length > 50) {
+      setError("Email không hợp lệ hoặc dài quá 50 ký tự.");
       return;
     }
 
-    const passwordRegex = /^[A-Za-z0-9]{6,16}$/;
-    if (!passwordRegex.test(values.password)) {
-      setError("Mật khẩu cần 6-16 ký tự, không chứa khoảng trắng/ký tự đặc biệt.");
+    if (values.password.length < 8) {
+      setError("Mật khẩu cần tối thiểu 8 ký tự.");
       return;
     }
 
     if (values.password !== values.confirmPassword) {
-      setError("Mật khẩu và nhập lại mật khẩu không khớp.");
+      setError("Mật khẩu nhập lại không khớp.");
       return;
     }
 
@@ -85,21 +77,24 @@ export default function RegisterForm() {
     try {
       const res = await fetch(ENDPOINTS.registerUser, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
+      const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || "Đăng ký thất bại. Vui lòng thử lại.");
+        throw new Error(data?.message || "Đăng ký thất bại. Vui lòng thử lại.");
+      }
+
+      const registered = data?.data || data?.result;
+      if (!registered?.id) {
+        throw new Error("Đăng ký thất bại. Vui lòng thử lại.");
       }
 
       setSuccess("Đăng ký thành công! Đang chuyển sang trang đăng nhập...");
       setTimeout(() => navigate("/login"), 800);
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "Đăng ký thất bại. Vui lòng thử lại.");
     } finally {
       setSubmitting(false);
     }
@@ -108,13 +103,11 @@ export default function RegisterForm() {
   return (
     <form className="register-form" onSubmit={handleSubmit}>
       {(error || success) && (
-        <div className={`form-alert ${error ? "error" : "success"}`}>
-          {error || success}
-        </div>
+        <div className={`form-alert ${error ? "error" : "success"}`}>{error || success}</div>
       )}
 
       <div className="field">
-        <label htmlFor="fullName">Tên đầy đủ</label>
+        <label htmlFor="fullName">Họ và tên</label>
         <div className="input-wrap">
           <input
             id="fullName"
@@ -144,13 +137,13 @@ export default function RegisterForm() {
       </div>
 
       <div className="field">
-        <label htmlFor="email">Gmail</label>
+        <label htmlFor="email">Email</label>
         <div className="input-wrap">
           <input
             id="email"
             name="email"
             type="email"
-            placeholder="Nhập gmail của bạn"
+            placeholder="Nhập email"
             value={values.email}
             onChange={handleChange}
             required

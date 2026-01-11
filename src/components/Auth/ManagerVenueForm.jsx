@@ -203,7 +203,7 @@ export default function ManagerVenueForm({
 
       <p className="signup-note">
         Bạn đã có tài khoản quản lý?{" "}
-        <a className="link-accent" href="/owner-login">
+        <a className="link-accent" href="/login">
           Đăng nhập!
         </a>
       </p>

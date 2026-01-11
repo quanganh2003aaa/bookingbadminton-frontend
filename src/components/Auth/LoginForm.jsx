@@ -3,11 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { ENDPOINTS } from "../../api/endpoints";
+import { api } from "../../services/api";
 
 export default function LoginForm() {
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
-  const [values, setValues] = useState({ email: "", password: "" });
+  const [values, setValues] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -24,14 +25,9 @@ export default function LoginForm() {
     setError("");
     setSuccess("");
 
-    const emailTrim = values.email.trim();
-    const emailRegex = /^[\w.-]+@([\w-]+\.)+[\w-]{2,}$/;
-    if (!emailRegex.test(emailTrim) || emailTrim.length > 50) {
-      setError("Gmail không hợp lệ hoặc vượt quá 50 ký tự.");
-      return;
-    }
-    if (!values.password) {
-      setError("Vui lòng nhập mật khẩu.");
+    const usernameTrim = values.username.trim();
+    if (!usernameTrim || !values.password) {
+      setError("Vui lòng nhập tài khoản và mật khẩu.");
       return;
     }
 
@@ -41,7 +37,7 @@ export default function LoginForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          gmail: emailTrim,
+          username: usernameTrim,
           password: values.password,
         }),
       });
@@ -51,15 +47,30 @@ export default function LoginForm() {
       }
 
       const data = await res.json().catch(() => ({}));
-      if (data?.code !== 0 || !data?.result) {
+      const payload = data?.data || data?.result || {};
+      if (!payload?.accessToken || !payload?.refreshToken || !payload?.role) {
         throw new Error("Thông tin đăng nhập không chính xác");
       }
 
-      // Lưu thông tin user để hiển thị header
-      localStorage.setItem("userProfile", JSON.stringify(data.result));
+      const role = String(payload.role || "").toUpperCase();
+      document.cookie = `accessToken=${payload.accessToken}; path=/;`;
+      document.cookie = `refreshToken=${payload.refreshToken}; path=/;`;
+      const userInfo = encodeURIComponent(
+        JSON.stringify({
+          userId: payload.userId,
+          role,
+          username: usernameTrim,
+        })
+      );
+      document.cookie = `userInfo=${userInfo}; path=/;`;
+      api.defaults.headers.common.Authorization = `Bearer ${payload.accessToken}`;
 
       setSuccess("Đăng nhập thành công! Đang chuyển hướng...");
-      setTimeout(() => navigate("/"), 800);
+      setTimeout(() => {
+        if (role === "OWNER") navigate("/owner");
+        else if (role === "ADMIN") navigate("/admin");
+        else navigate("/");
+      }, 600);
     } catch (err) {
       setError(err.message || "Thông tin đăng nhập không chính xác");
     } finally {
@@ -69,21 +80,17 @@ export default function LoginForm() {
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
-      {(error || success) && (
-        <div className={`form-alert ${error ? "error" : "success"}`}>
-          {error || success}
-        </div>
-      )}
+      {(error || success) && <div className={`form-alert ${error ? "error" : "success"}`}>{error || success}</div>}
 
       <div className="field">
-        <label htmlFor="email">Gmail</label>
+        <label htmlFor="username">Tài khoản</label>
         <div className="input-wrap">
           <input
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Nhập gmail"
-            value={values.email}
+            id="username"
+            name="username"
+            type="text"
+            placeholder="Nhập email hoặc tên đăng nhập"
+            value={values.username}
             onChange={handleChange}
             required
           />
@@ -131,13 +138,6 @@ export default function LoginForm() {
         Bạn chưa có tài khoản?{" "}
         <a className="link-accent" href="/register">
           Đăng ký miễn phí!
-        </a>
-      </p>
-
-      <p className="signup-note">
-        Nếu bạn là chủ sân,{" "}
-        <a className="link-accent" href="/owner-login">
-          đến trang đăng nhập của chủ sân
         </a>
       </p>
     </form>
