@@ -34,10 +34,12 @@ export const ENDPOINTS = {
     `${API_BASE}/fields/owner/${encodeURIComponent(id)}?ownerId=${encodeURIComponent(ownerId)}`,
   ownerFieldBookings: `${API_BASE}/owner/field-booking`,
   ownerFieldBookingDetail: (id) => `${API_BASE}/owner/field-booking/${encodeURIComponent(id)}`,
+  ownerFieldBookingList: (id) => `${API_BASE}/owner/field-booking/${encodeURIComponent(id)}/list-booking`,
   ownerDetailInfo: `${API_BASE}/owner/detail-info`,
 
   // USER BOOKING
   bookingPending: `${API_BASE}/bookings/pending`,
+  bookingPayDetail: (id) => `${API_BASE}/bookings/${encodeURIComponent(id)}/pay-detail`,
   userDetailInfo: `${API_BASE}/users/detail-info`,
   timeSlotsField: (id) => `${API_BASE}/time-slots/field/${encodeURIComponent(id)}`,
   fieldImageUpload: (id) => `${API_BASE}/fields/${encodeURIComponent(id)}/images/upload`,
