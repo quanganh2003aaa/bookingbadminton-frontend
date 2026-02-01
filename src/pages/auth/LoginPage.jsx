@@ -14,6 +14,18 @@ export default function LoginPage() {
             <p>Vui lòng nhập thông tin của bạn.</p>
           </div>
           <LoginForm />
+          <p className="signup-note">
+            Bạn chưa có tài khoản?{" "}
+            <a className="link-accent" href="/register">
+              Đăng ký miễn phí!
+            </a>
+            <div className="login-extra-note">
+              Muốn quản lý sân?{" "}
+              <a className="link-accent" href="/manager-register">
+                Đăng ký quản lý
+              </a>
+            </div>
+          </p>
         </div>
 
         <div className="login-right">

@@ -138,13 +138,6 @@ export default function LoginForm() {
         <FcGoogle aria-hidden="true" size={22} />
         <span>Tiếp tục với Google</span>
       </button>
-
-      <p className="signup-note">
-        Bạn chưa có tài khoản?{" "}
-        <a className="link-accent" href="/register">
-          Đăng ký miễn phí!
-        </a>
-      </p>
     </form>
   );
 }

@@ -34,6 +34,8 @@ export const ENDPOINTS = {
   ownerFieldBookingDetail: (id) => `${API_BASE}/owner/field-booking/${encodeURIComponent(id)}`,
   ownerFieldBookingList: (id) => `${API_BASE}/owner/field-booking/${encodeURIComponent(id)}/list-booking`,
   ownerDetailInfo: `${API_BASE}/owner/detail-info`,
+  ownerApproveBooking: (id) => `${API_BASE}/owner/approve-booking/${encodeURIComponent(id)}`,
+  ownerRejectBooking: (id) => `${API_BASE}/owner/reject-booking/${encodeURIComponent(id)}`,
 
   // USER BOOKING
   bookingPending: `${API_BASE}/bookings/pending`,

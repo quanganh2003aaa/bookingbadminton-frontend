@@ -728,37 +728,6 @@ export default function OwnerVenueDetailPage() {
           </section>
         </div>
       )}
-
-      <section className="detail-card gallery-card">
-        <div className="gallery-header">
-          <h3>Hình ảnh</h3>
-          <button type="button" className="icon-upload-btn" onClick={() => fileInputRef.current?.click()}>
-            +
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            style={{ display: "none" }}
-            onChange={handleFilesSelected}
-          />
-        </div>
-        <Notice
-          type={uploading ? "info" : "success"}
-          message={uploading ? "Đang tải ảnh..." : uploadMessage}
-        />
-        <div className="gallery-strip">
-          {imagesLoaded && images.length === 0 && (
-            <div className="gallery-item placeholder">Chưa có ảnh được trả về</div>
-          )}
-          {images?.map((src, idx) => (
-            <div className="gallery-item" key={src + idx}>
-              <img src={src} alt={`Ảnh sân ${idx + 1}`} />
-            </div>
-          ))}
-        </div>
-      </section>
     </div>
   );
 }

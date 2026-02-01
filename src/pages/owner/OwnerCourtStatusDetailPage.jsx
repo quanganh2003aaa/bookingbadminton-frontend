@@ -211,17 +211,19 @@ export default function OwnerCourtStatusDetailPage() {
       message.error("Không tìm thấy sân con của đơn đặt.");
       return;
     }
+    const token = getAccessToken();
     setActionLoading(true);
     try {
       const url =
         type === "approve"
-          ? `http://localhost:8080/api/owner/approve-booking/${detail.bookingId}`
-          : `http://localhost:8080/api/owner/reject-booking/${detail.bookingId}`;
+          ? ENDPOINTS.ownerApproveBooking(detail.bookingId)
+          : ENDPOINTS.ownerRejectBooking(detail.bookingId);
       const res = await fetch(url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
         body: JSON.stringify({ ownerId, subFieldId }),
       });
