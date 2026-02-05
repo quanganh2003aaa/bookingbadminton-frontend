@@ -67,38 +67,6 @@ export default function VenueDetailModal({ venue, onClose, onBook }) {
       ),
     },
     {
-      key: "reviews",
-      label: "Đánh giá",
-      children: (
-        <div className="tab-panel">
-          <div className="section-header">
-            <Title level={5} className="no-margin">
-              Đánh giá
-            </Title>
-            <Text type="secondary">{reviews.length ? `${reviews.length} đánh giá` : "Chưa có đánh giá"}</Text>
-          </div>
-          <List
-            dataSource={reviews}
-            locale={{ emptyText: "Chưa có đánh giá" }}
-            renderItem={(r) => (
-              <List.Item className="review-item">
-                <List.Item.Meta
-                  avatar={r.avatar ? <Avatar src={r.avatar} /> : <Avatar>{(r.name || "?").charAt(0)}</Avatar>}
-                  title={
-                    <Space align="center">
-                      <Text strong>{r.name}</Text>
-                      <Rate disabled allowHalf defaultValue={r.rating || 0} />
-                    </Space>
-                  }
-                  description={<Text type="secondary">{r.comment}</Text>}
-                />
-              </List.Item>
-            )}
-          />
-        </div>
-      ),
-    },
-    {
       key: "map",
       label: "Bản đồ",
       children: (

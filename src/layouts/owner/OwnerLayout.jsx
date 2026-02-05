@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { FiActivity, FiGrid, FiTrendingUp, FiUser } from "react-icons/fi";
 import OwnerSidebar from "../../components/owner/OwnerSidebar";
 import OwnerTopbar from "../../components/owner/OwnerTopbar";
-import { ownerProfile } from "../../services/ownerMockData";
+import { ownerProfile, adminProfile } from "../../services/ownerMockData";
 import { ENDPOINTS } from "../../api/endpoints";
 import "./owner-layout.css";
 
@@ -13,7 +13,7 @@ const defaultNavItems = [
   { to: "/owner/account", label: "Tài khoản", icon: <FiUser /> },
 ];
 
-export default function OwnerLayout({ navItems, user }) {
+export default function OwnerLayout({ navItems, isAdmin }) {
   const items = navItems || defaultNavItems;
   const isAdminLayout = items.some((item) => String(item.to || "").startsWith("/admin"));
 
@@ -56,7 +56,7 @@ export default function OwnerLayout({ navItems, user }) {
       <OwnerSidebar items={items} />
 
       <div className="owner-main">
-        <OwnerTopbar user={user || ownerProfile} onLogout={isAdminLayout ? handleLogout : undefined} />
+        <OwnerTopbar user={isAdmin ? adminProfile : ownerProfile} onLogout={isAdminLayout ? handleLogout : undefined} />
         <div className="owner-content">
           <Outlet />
         </div>

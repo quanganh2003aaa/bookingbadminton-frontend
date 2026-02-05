@@ -4,8 +4,7 @@ import "./admin-layout.css";
 const adminLinks = [
   { to: "/admin", label: "Quản lý người dùng", exact: true },
   { to: "/admin/owners", label: "Quản lý chủ sân" },
-  { to: "/admin/registrations", label: "Quản lý đăng ký" },
-  { to: "/admin/reports", label: "Báo cáo" },
+  { to: "/admin/registrations", label: "Quản lý đăng ký" }
 ];
 
 export default function AppLayoutAdmin() {

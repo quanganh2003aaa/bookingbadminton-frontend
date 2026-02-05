@@ -1,9 +1,12 @@
+export const adminProfile = {
+  email: "admin@gmail.com",
+  phone: "0987654321"
+};
 export const ownerProfile = {
   email: "owner@example.com",
   phone: "0987 654 321",
   venuesManaged: 3,
   joinedAt: "01/2024",
-  rating: 4.8,
 };
 
 export const ownerVenues = [

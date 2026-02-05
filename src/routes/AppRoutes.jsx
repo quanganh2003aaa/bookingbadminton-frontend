@@ -26,9 +26,8 @@ import InvoicePage from "../pages/public/InvoicePage";
 
 const adminNavItems = [
   { to: "/admin", label: "Quản lý người dùng", end: true },
-  { to: "/admin/owners", label: "Quản lý chủ sân" },
-  { to: "/admin/registrations", label: "Quản lý đăng ký" },
-  { to: "/admin/reports", label: "Báo cáo" },
+  { to: "/admin/owners", label: "Quản lý sân" },
+  { to: "/admin/registrations", label: "Quản lý đăng ký" }
 ];
 
 const authRoutes = [
@@ -56,7 +55,7 @@ const appRoutes = [
   },
   {
     path: "/owner",
-    element: <OwnerLayout />,
+    element: <OwnerLayout/>,
     children: [
       { index: true, element: <OwnerVenueInfoPage /> },
       { path: "status", element: <OwnerCourtStatusPage /> },
@@ -68,7 +67,7 @@ const appRoutes = [
   },
   {
     path: "/admin",
-    element: <OwnerLayout navItems={adminNavItems} />,
+    element: <OwnerLayout navItems={adminNavItems} isAdmin={1}/>,
     children: [
       { index: true, element: <AdminSystemPage /> },
       { path: "users", element: <AdminSystemPage /> },
