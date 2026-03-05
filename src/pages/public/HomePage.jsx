@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import VenueCard from "../../components/venue/VenueCard/VenueCard";
 import VenueDetailModal from "../../components/venue/VenueDetailModal/VenueDetailModal";
@@ -8,16 +8,18 @@ import { mockVenues } from "../../services/mockData";
 import avatar from "../../assets/logoV1.png";
 import "./homePage.css";
 
-const USE_MOCK_DATA = false; // Using backend API
-const PAGE_SIZE = 9; // 3 hang x 3 the
+const USE_MOCK_DATA = false;
+const PAGE_SIZE = 9;
 
 const API_HOST = (import.meta.env?.VITE_API_BASE || "")
   .replace(/\/api$/, "")
   .replace(/\/$/, "");
+
 const CLIENT_ORIGIN =
   typeof window !== "undefined" && window.location?.origin
     ? window.location.origin
     : "";
+
 const withBase = (path = "") => {
   const base = CLIENT_ORIGIN || API_HOST || "";
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
@@ -26,6 +28,7 @@ const withBase = (path = "") => {
 const normalizeImageSrc = (value = "") => {
   if (!value) return "";
   if (value.startsWith("http://") || value.startsWith("https://")) return value;
+
   const normalized = value.replace(/\\\\/g, "/").replace(/\\/g, "/");
   const lower = normalized.toLowerCase();
 
@@ -57,6 +60,7 @@ const mapVenueFromApi = (item = {}) => {
   const image =
     normalizeImageSrc(item.image || item.thumbnail || item.banner) ||
     DEFAULT_IMAGE;
+
   const images = Array.isArray(item.images)
     ? item.images
         .map((img) => normalizeImageSrc(img?.url || img?.path || img))
@@ -81,16 +85,16 @@ const mapVenueFromApi = (item = {}) => {
 
 export default function HomePage() {
   const navigate = useNavigate();
+
   const [venues, setVenues] = useState([]);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalElements, setTotalElements] = useState(0);
   const [selectedVenue, setSelectedVenue] = useState(null);
-  const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [hasUserScrolled, setHasUserScrolled] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const loadMoreRef = useRef(null);
 
   const fetchPage = useCallback(async (targetPage) => {
     try {
@@ -100,8 +104,9 @@ export default function HomePage() {
       if (USE_MOCK_DATA) {
         const start = (targetPage - 1) * PAGE_SIZE;
         const next = mockVenues.slice(start, start + PAGE_SIZE);
-        setVenues((prev) => (targetPage === 1 ? next : [...prev, ...next]));
-        setHasMore(start + PAGE_SIZE < mockVenues.length);
+        setVenues(next);
+        setTotalElements(mockVenues.length);
+        setTotalPages(Math.max(1, Math.ceil(mockVenues.length / PAGE_SIZE)));
         return;
       }
 
@@ -114,28 +119,26 @@ export default function HomePage() {
       const payload = data?.result || {};
       const list = Array.isArray(payload.content) ? payload.content : [];
       const mapped = list.map(mapVenueFromApi);
+      const totalPagesRaw = Number(payload.totalPages);
+      const totalElementsRaw = Number(payload.totalElements);
+      const serverTotalPages =
+        Number.isFinite(totalPagesRaw) && totalPagesRaw > 0
+          ? Math.floor(totalPagesRaw)
+          : 1;
 
-      setVenues((prev) => (targetPage === 1 ? mapped : [...prev, ...mapped]));
-
-      const pageNumber =
-        typeof payload.pageNumber === "number"
-          ? payload.pageNumber
-          : targetPage - 1;
-      const totalPages =
-        typeof payload.totalPages === "number" ? payload.totalPages : undefined;
-
-      const more =
-        payload.last === false
-          ? true
-          : totalPages
-          ? pageNumber + 1 < totalPages
-          : mapped.length === PAGE_SIZE;
-
-      setHasMore(more && mapped.length > 0);
+      setVenues(mapped);
+      setTotalPages(serverTotalPages);
+      setTotalElements(
+        Number.isFinite(totalElementsRaw)
+          ? Math.floor(totalElementsRaw)
+          : mapped.length
+      );
     } catch (err) {
       console.error("Failed to load venues:", err);
-      setError("Không thể tải danh sách sân. Vui lòng thử lại.");
-      setHasMore(false);
+      setError("Khong the tai danh sach san. Vui long thu lai.");
+      setVenues([]);
+      setTotalPages(1);
+      setTotalElements(0);
     } finally {
       setLoading(false);
     }
@@ -146,37 +149,16 @@ export default function HomePage() {
   }, [page, fetchPage]);
 
   useEffect(() => {
-    const onScroll = () => {
-      if (window.scrollY > 320) setHasUserScrolled(true);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const first = entries[0];
-        if (first.isIntersecting && hasMore && !loading && hasUserScrolled) {
-          setPage((p) => p + 1);
-        }
-      },
-      { rootMargin: "0px 0px -80px 0px" }
-    );
-
-    const current = loadMoreRef.current;
-    if (current) observer.observe(current);
-
-    return () => {
-      if (current) observer.unobserve(current);
-      observer.disconnect();
-    };
-  }, [hasMore, loading, hasUserScrolled]);
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
 
   useEffect(() => {
     const handler = (e) => {
       setSearchTerm(e.detail?.query || "");
     };
+
     window.addEventListener("venue-search", handler);
     return () => window.removeEventListener("venue-search", handler);
   }, []);
@@ -184,15 +166,51 @@ export default function HomePage() {
   const displayedVenues = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     let list = venues;
+
     if (q) {
       list = venues.filter((v) => v.name?.toLowerCase().includes(q));
     }
-    // Khi có rating từ BE: ưu tiên sort theo rating desc
+
     if (list.length && typeof list[0]?.rating !== "undefined") {
       list = [...list].sort((a, b) => (b.rating || 0) - (a.rating || 0));
     }
+
     return list;
   }, [venues, searchTerm]);
+
+  const handlePageChange = useCallback(
+    (nextPage) => {
+      if (loading) return;
+      if (nextPage < 1 || nextPage > totalPages || nextPage === page) return;
+
+      setPage(nextPage);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    },
+    [loading, page, totalPages]
+  );
+
+  const pageList = useMemo(() => {
+    const MAX_VISIBLE = 5;
+
+    if (totalPages <= MAX_VISIBLE) {
+      return Array.from({ length: totalPages }, (_, idx) => idx + 1);
+    }
+
+    const half = Math.floor(MAX_VISIBLE / 2);
+    let start = Math.max(1, page - half);
+    let end = Math.min(totalPages, start + MAX_VISIBLE - 1);
+
+    if (end - start + 1 < MAX_VISIBLE) {
+      start = Math.max(1, end - MAX_VISIBLE + 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, idx) => start + idx);
+  }, [page, totalPages]);
+
+  const showLeadingEllipsis = pageList.length > 0 && pageList[0] > 2;
+  const showTrailingEllipsis =
+    pageList.length > 0 && pageList[pageList.length - 1] < totalPages - 1;
+  const hasPagination = totalPages >= 1 && (venues.length > 0 || loading);
 
   const isInitialLoading = page === 1 && loading && venues.length === 0;
 
@@ -222,6 +240,7 @@ export default function HomePage() {
                       const res = await getVenueDetail(v.id);
                       const payload = res?.result || res || {};
                       const mapped = mapVenueFromApi(payload);
+
                       mapped.pricing = Array.isArray(payload.timeSlots)
                         ? payload.timeSlots.map((slot, idx) => ({
                             time: `${toHour(slot.startHour)} - ${toHour(slot.endHour)}`,
@@ -229,6 +248,7 @@ export default function HomePage() {
                             id: slot.id || idx,
                           }))
                         : [];
+
                       mapped.reviews = Array.isArray(payload.comments)
                         ? payload.comments.map((c, idx) => ({
                             id: c.id || idx,
@@ -237,12 +257,14 @@ export default function HomePage() {
                             comment: c.comment || c.content || "",
                           }))
                         : [];
+
                       mapped.images =
                         Array.isArray(payload.images) && payload.images.length
                           ? payload.images
                               .map((img) => normalizeImageSrc(img?.url || img?.path || img))
                               .filter(Boolean)
                           : mapped.images;
+
                       setSelectedVenue(mapped);
                     } catch (err) {
                       console.error("Failed to load venue detail:", err);
@@ -255,23 +277,79 @@ export default function HomePage() {
               />
             ))
           ) : (
-            <div className="no-venues">Không tìm thấy sân nào</div>
+            <div className="no-venues">Khong tim thay san nao</div>
           )}
         </div>
 
-        <div ref={loadMoreRef} style={{ height: 1 }} />
-
         {loading && venues.length > 0 && (
-          <div className="loading-more">Đang tải thêm sân...</div>
+          <div className="loading-more">Dang tai danh sach san...</div>
         )}
 
-        {!hasMore && venues.length > 0 && (
-          <div className="loading-more done">
-            Đã tải hết sân phù hợp bạn nhé!
+        {hasPagination && (
+          <div className="venues-pagination-wrap">
+            <div className="venues-pagination">
+              <button
+                type="button"
+                className="pagination-btn nav"
+                onClick={() => handlePageChange(page - 1)}
+                disabled={page === 1 || loading}
+              >
+                Truoc
+              </button>
+
+              {pageList[0] > 1 && (
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(1)}
+                >
+                  1
+                </button>
+              )}
+
+              {showLeadingEllipsis && <span className="pagination-ellipsis">...</span>}
+
+              {pageList.map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`pagination-btn ${pageNum === page ? "active" : ""}`}
+                  onClick={() => handlePageChange(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
+
+              {showTrailingEllipsis && <span className="pagination-ellipsis">...</span>}
+
+              {pageList[pageList.length - 1] < totalPages && (
+                <button
+                  type="button"
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(totalPages)}
+                >
+                  {totalPages}
+                </button>
+              )}
+
+              <button
+                type="button"
+                className="pagination-btn nav"
+                onClick={() => handlePageChange(page + 1)}
+                disabled={page === totalPages || loading}
+              >
+                Sau
+              </button>
+            </div>
+
+            <div className="pagination-summary">
+              Trang {page}/{totalPages} • {totalElements} san
+            </div>
           </div>
         )}
+
         {detailLoading && (
-          <div className="loading-more">Đang tải chi tiết sân...</div>
+          <div className="loading-more">Dang tai chi tiet san...</div>
         )}
       </div>
 
